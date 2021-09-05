@@ -27,9 +27,9 @@ from __future__ import print_function
 import numpy as np
 import torch
 import torch.nn as nn
-from manydepth.robust_loss_pytorch import distribution_skewed
-from manydepth.robust_loss_pytorch import util
-from manydepth.robust_loss_pytorch import wavelet
+from robust_loss_pytorch import distribution_skewed
+from robust_loss_pytorch import util
+from robust_loss_pytorch import wavelet
 
 
 class AdaptiveLossFunction(nn.Module):
