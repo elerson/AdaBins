@@ -142,7 +142,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     adaptive_image_loss_func = None
     image_size = (1, args.input_height, args.input_width)
     #print(image_size)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=-0.1, beta_hi=0.1, beta_init=0.1, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=-0.5, beta_hi=1.0, beta_init=0.1, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
     model.train()
