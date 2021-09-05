@@ -238,7 +238,7 @@ class DistributionSkewed():
     alpha_ = torch.as_tensor(alpha)
     alpha  = torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2])
     
-    print('alpha', alpha.shape)
+    #print('alpha', alpha.shape)
     
     beta = torch.as_tensor(beta)
     #beta  = torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2])
@@ -252,7 +252,7 @@ class DistributionSkewed():
 
     #l = torch.as_tensor(0.65)#self.Z_integral(x, alpha, beta)
     #print(l)
-    loss = general.lossfun(x, beta, scale, approximate=True)
+    loss = general.lossfun(x, torch.as_tensor(2), scale, approximate=True)
     #print(torch.log(scale))
     log_partition = torch.log(scale/2.0) + self.log_base_partition_function(beta) + self.Z_integral(x, alpha, beta)
     nll = loss + log_partition
