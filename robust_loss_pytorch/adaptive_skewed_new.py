@@ -203,9 +203,9 @@ class AdaptiveLossFunction(nn.Module):
                   device=self.device)[np.newaxis, np.newaxis].repeat(
                       1, 3),
               requires_grad=True))
-      #self.alpha = lambda: util.affine_sigmoid(
-      #    self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
-      self.alpha = lambda: self.latent_alpha
+      self.alpha = lambda: util.affine_sigmoid(
+          self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
+      #self.alpha = lambda: self.latent_alpha
       
       
     if scale_lo == scale_init:
