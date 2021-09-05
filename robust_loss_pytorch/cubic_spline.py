@@ -162,9 +162,9 @@ def interpolate2d(x, y, values):
 
   s = y - y_lo.type(float_dtype)
 
-  #print(t, x_lo, y_lo)
+  print(t, x_lo, y_lo)
 
-
+  
   r0 = cubicInterpolate(s, (values[x_lo-1][y_lo-1], values[x_lo-1][y_lo], values[x_lo-1][y_lo+1], values[x_lo-1][y_lo+2]))
   r1 = cubicInterpolate(s, (values[x_lo][y_lo-1],   values[x_lo][y_lo],   values[x_lo][y_lo+1],   values[x_lo][y_lo+2]))
   r2 = cubicInterpolate(s, (values[x_lo+1][y_lo-1], values[x_lo+1][y_lo], values[x_lo+1][y_lo+1], values[x_lo+1][y_lo+2]))
