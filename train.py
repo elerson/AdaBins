@@ -62,8 +62,8 @@ def log_images(img, depth, pred, img_alpha, img_beta, args, step):
         {
             "Input": [wandb.Image(img)],
             "GT": [wandb.Image(depth)],
-            "Prediction": [wandb.Image(pred)]
-            "Alpha": [wandb.Image(img_alpha)]
+            "Prediction": [wandb.Image(pred)],
+            "Alpha": [wandb.Image(img_alpha)],
             "Beta": [wandb.Image(img_beta)]
         }, step=step)
 
