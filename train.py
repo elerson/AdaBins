@@ -20,6 +20,7 @@ import utils
 from dataloader import DepthDataLoader
 from loss import SILogLoss, BinsChamferLoss
 from utils import RunningAverage, colorize
+from robust_loss_pytorch import AdaptiveImageLossFunctionSkewed
 
 # os.environ['WANDB_MODE'] = 'dryrun'
 PROJECT = "MDE-AdaBins"
@@ -54,7 +55,7 @@ def colorize(value, vmin=10, vmax=1000, cmap='plasma'):
     return img
 
 
-def log_images(img, depth, pred, args, step):
+def log_images(img, depth, pred, img_alpha, img_beta, args, step):
     depth = colorize(depth, vmin=args.min_depth, vmax=args.max_depth)
     pred = colorize(pred, vmin=args.min_depth, vmax=args.max_depth)
     wandb.log(
@@ -62,6 +63,8 @@ def log_images(img, depth, pred, args, step):
             "Input": [wandb.Image(img)],
             "GT": [wandb.Image(depth)],
             "Prediction": [wandb.Image(pred)]
+            "Alpha": [wandb.Image(img_alpha)]
+            "Beta": [wandb.Image(img_beta)]
         }, step=step)
 
 
@@ -114,6 +117,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     if device is None:
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
+    
     ###################################### Logging setup #########################################
     print(f"Training {experiment_name}")
 
@@ -135,6 +139,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### losses ##############################################
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
+    image_size = (3, args.input_height, args.input_width)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
     model.train()
@@ -187,7 +193,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            l_dense = adaptive_image_loss_func.lossfun(pred - depth) #criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
@@ -201,6 +207,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
+                img_beta = adaptive_image_loss_func.beta()*127.0                
+                img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
+                log_images(img, depth, pred, img_alpha, img_beta, args, step)
 
             step += 1
             scheduler.step()
