@@ -151,10 +151,10 @@ def interpolate2d(x, y, values):
 
 
   x_lo = torch.floor(torch.clamp(x, torch.as_tensor(0),
-                                 values.shape[0] - 2)).type(torch.int64)
+                                 values.shape[0] - 3)).type(torch.int64)
   
   y_lo = torch.floor(torch.clamp(y, torch.as_tensor(0),
-                                 values.shape[1] - 2)).type(torch.int64)
+                                 values.shape[1] - 3)).type(torch.int64)
 
 
   # Compute the relative distance between each `x` and the knot below it.
