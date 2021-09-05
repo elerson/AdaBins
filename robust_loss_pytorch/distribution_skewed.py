@@ -235,10 +235,10 @@ class DistributionSkewed():
     # `scale` and `beta` must have the same type as `x`.
     x = torch.as_tensor(x)
     alpha_ = torch.as_tensor(alpha)
-    alpha  = alpha_[0]*gt*gt + alpha_[1]*gt + alpha_[2]
+    alpha  = torch.as_tensor(alpha_[0])*gt*gt + torch.as_tensor(alpha_[1])*gt + torch.as_tensor(alpha_[2])
     
     beta_ = torch.as_tensor(beta)
-    beta  = beta_[0]*gt*gt + beta_[1]*gt + beta_[2]
+    beta  = torch.as_tensor(beta_[0])*gt*gt + torch.as_tensor(beta_[1])*gt + torch.as_tensor(beta_[2])
     
     scale = torch.as_tensor(scale)
     assert (beta >= 0).all()
