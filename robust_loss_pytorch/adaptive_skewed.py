@@ -351,6 +351,7 @@ class AdaptiveImageLossFunction(nn.Module):
   """A wrapper around AdaptiveLossFunction for handling images."""
 
   def transform_to_mat(self, x):
+  
     """Transforms a batch of images to a matrix."""
     assert len(x.shape) == 4
     x = torch.as_tensor(x)
