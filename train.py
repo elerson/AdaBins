@@ -197,8 +197,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 image_size = (depth.shape[1], depth.shape[2], depth.shape[3])
                 print(image_size)
                 adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
-            print(pred.shape, depth.shape)
-            l_dense = adaptive_image_loss_func.lossfun(pred - depth) #criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            #print(pred.shape, depth.shape)
+            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth) #criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
