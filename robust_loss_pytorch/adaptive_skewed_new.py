@@ -58,7 +58,7 @@ class AdaptiveLossFunction(nn.Module):
                device,
                alpha_lo=-0.4,
                alpha_hi=0.4,
-               alpha_init=0.0,
+               alpha_init=0.01,
                beta_lo=0.001,
                beta_hi=1.999,
                beta_init=None,
