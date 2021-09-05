@@ -178,7 +178,7 @@ class AdaptiveLossFunction(nn.Module):
       
       #self.beta = lambda: util.affine_sigmoid(
       #    self.latent_beta, lo=beta_lo, hi=beta_hi)
-      #self.beta = lambda: self.latent_beta
+      self.beta = lambda: self.latent_beta
       
           
     if alpha_lo == alpha_hi:
