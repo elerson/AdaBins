@@ -204,6 +204,56 @@ class DistributionSkewed():
     log_partition = torch.log(scale/2.0) + self.log_base_partition_function(beta) + self.Z_integral(x, alpha, beta)
     nll = loss + log_partition
     return nll
+    
+    
+  def nllfun_gt(self, x, gt, alpha, beta, scale):
+    r"""Implements the negative log-likelihood (NLL).
+
+    Specifically, we implement -log(p(x | 0, \beta, c) of Equation 16 in the
+    paper as nllfun(x, beta, shape).
+
+    Args:
+      x: The residual for which the NLL is being computed. x can have any shape,
+        and beta and scale will be broadcasted to match x's shape if necessary.
+        Must be a tensor or numpy array of floats.
+      beta: The shape parameter of the NLL (\beta in the paper), where more
+        negative values cause outliers to "cost" more and inliers to "cost"
+        less. beta can be any non-negative value, but the gradient of the NLL
+        with respect to beta has singularities at 0 and 2 so you may want to
+        limit usage to (0, 2) during gradient descent. Must be a tensor or numpy
+        array of floats. Varying beta in that range allows for smooth
+        interpolation between a Cauchy distribution (beta = 0) and a Normal
+        distribution (beta = 2) similar to a Student's T distribution.
+      scale: The scale parameter of the loss. When |x| < scale, the NLL is like
+        that of a (possibly unnormalized) normal distribution, and when |x| >
+        scale the NLL takes on a different shape according to beta. Must be a
+        tensor or numpy array of floats.
+
+    Returns:
+      The NLLs for each element of x, in the same shape and precision as x.
+    """
+    # `scale` and `beta` must have the same type as `x`.
+    x = torch.as_tensor(x)
+    alpha_ = torch.as_tensor(alpha)
+    alpha  = alpha_[0]*gt*gt + alpha_[1]*gt + alpha_[2]
+    
+    beta_ = torch.as_tensor(beta)
+    beta  = beta_[0]*gt*gt + beta_[1]*gt + beta_[2]
+    
+    scale = torch.as_tensor(scale)
+    assert (beta >= 0).all()
+    assert (scale >= 0).all()
+    float_dtype = x.dtype
+    assert beta.dtype == float_dtype
+    assert scale.dtype == float_dtype
+
+    #l = torch.as_tensor(0.65)#self.Z_integral(x, alpha, beta)
+    #print(l)
+    loss = general.lossfun(x, beta, scale, approximate=True)
+    #print(torch.log(scale))
+    log_partition = torch.log(scale/2.0) + self.log_base_partition_function(beta) + self.Z_integral(x, alpha, beta)
+    nll = loss + log_partition
+    return nll
 
   def draw_samples(self, beta, scale):
     r"""Draw samples from the robust distribution.

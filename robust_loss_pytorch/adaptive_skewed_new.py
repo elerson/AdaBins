@@ -173,10 +173,12 @@ class AdaptiveLossFunction(nn.Module):
               latent_beta_init.clone().detach().to(
                   dtype=self.float_dtype,
                   device=self.device)[np.newaxis, np.newaxis].repeat(
-                      1, self.num_dims),
+                      1, 3),
               requires_grad=True))
-      self.beta = lambda: util.affine_sigmoid(
-          self.latent_beta, lo=beta_lo, hi=beta_hi)
+      #self.beta = lambda: util.affine_sigmoid(
+      #    self.latent_beta, lo=beta_lo, hi=beta_hi)
+      self.beta = lambda: self.latent_beta
+      
           
     if alpha_lo == alpha_hi:
       # If the range of alphas is a single item, then we just fix `alpha` to be
@@ -199,11 +201,13 @@ class AdaptiveLossFunction(nn.Module):
               latent_alpha_init.clone().detach().to(
                   dtype=self.float_dtype,
                   device=self.device)[np.newaxis, np.newaxis].repeat(
-                      1, self.num_dims),
+                      1, 3),
               requires_grad=True))
-      self.alpha = lambda: util.affine_sigmoid(
-          self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
-
+      #self.alpha = lambda: util.affine_sigmoid(
+      #    self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
+      self.alpha = lambda: self.latent_alpha
+      
+      
     if scale_lo == scale_init:
       # If the difference between the minimum and initial scale is zero, then
       # we just fix `scale` to be a constant.
@@ -223,7 +227,7 @@ class AdaptiveLossFunction(nn.Module):
       self.scale = lambda: util.affine_softplus(
           self.latent_scale, lo=scale_lo, ref=scale_init)
 
-  def lossfun(self, x, **kwargs):
+  def lossfun(self, x, gt, **kwargs):
     """Computes the loss on a matrix.
 
     Args:
@@ -244,7 +248,7 @@ class AdaptiveLossFunction(nn.Module):
     assert len(x.shape) == 2
     assert x.shape[1] == self.num_dims
     assert x.dtype == self.float_dtype
-    return self.distribution.nllfun(x, self.alpha(), self.beta(), self.scale(), **kwargs)
+    return self.distribution.nllfun_gt(x, gt, self.alpha(), self.beta(), self.scale(), **kwargs)
 
 
 class StudentsTLossFunction(nn.Module):
@@ -484,7 +488,7 @@ class AdaptiveImageLossFunction(nn.Module):
                                                    self.float_dtype,
                                                    self.device, **kwargs)
 
-  def lossfun(self, x):
+  def lossfun(self, x, gt):
     """Computes the adaptive form of the robust loss on a set of images.
 
     Args:
@@ -501,7 +505,7 @@ class AdaptiveImageLossFunction(nn.Module):
     """
     x_mat = self.transform_to_mat(x)
 
-    loss_mat = self.adaptive_lossfun.lossfun(x_mat)
+    loss_mat = self.adaptive_lossfun.lossfun(x_mat, gt)
 
     # Reshape the loss function's outputs to have the shapes as the input.
     loss = torch.reshape(loss_mat, [-1] + list(self.image_size))
@@ -511,12 +515,12 @@ class AdaptiveImageLossFunction(nn.Module):
     """Returns an image of betas."""
     assert not self.use_students_t
     #return self.adaptive_lossfun.alpha()
-    return torch.reshape(self.adaptive_lossfun.alpha(), self.image_size)
+    return torch.reshape(self.adaptive_lossfun.alpha(), 3)
     
   def beta(self):
     """Returns an image of betas."""
     assert not self.use_students_t
-    return torch.reshape(self.adaptive_lossfun.beta(), self.image_size)
+    return torch.reshape(self.adaptive_lossfun.beta(), 3)
 
   def df(self):
     """Returns an image of degrees of freedom, for the Student's T model."""

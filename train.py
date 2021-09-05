@@ -20,7 +20,7 @@ import utils
 from dataloader import DepthDataLoader
 from loss import SILogLoss, BinsChamferLoss
 from utils import RunningAverage, colorize
-from robust_loss_pytorch import AdaptiveImageLossFunctionSkewed
+from robust_loss_pytorch import AdaptiveImageLossFunctionSkewedNew
 
 # os.environ['WANDB_MODE'] = 'dryrun'
 PROJECT = "MDE-AdaBins"
@@ -142,7 +142,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     adaptive_image_loss_func = None
     image_size = (1, args.input_height, args.input_width)
     #print(image_size)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
     model.train()
@@ -205,9 +205,19 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
-                img_beta = adaptive_image_loss_func.beta()*127.0                
-                img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
-                log_images(img, depth, pred, img_alpha, img_beta, args, step)
+                
+                wandb.log({"b0": adaptive_image_loss_func.beta()[0]}, step=step)
+                wandb.log({"b1": adaptive_image_loss_func.beta()[1]}, step=step)
+                wandb.log({"b2": adaptive_image_loss_func.beta()[2]}, step=step)
+
+                wandb.log({"a0": adaptive_image_loss_func.alpha()[0]}, step=step)
+                wandb.log({"a1": adaptive_image_loss_func.alpha()[1]}, step=step)
+                wandb.log({"a2": adaptive_image_loss_func.alpha()[2]}, step=step)
+
+                
+                #img_beta = adaptive_image_loss_func.beta()*127.0                
+                #img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
+                #log_images(img, depth, pred, img_alpha, img_beta, args, step)
 
             step += 1
             scheduler.step()
