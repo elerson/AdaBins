@@ -516,12 +516,12 @@ class AdaptiveImageLossFunction(nn.Module):
     """Returns an image of betas."""
     assert not self.use_students_t
     #return self.adaptive_lossfun.alpha()
-    return torch.reshape(self.adaptive_lossfun.alpha(), 3)
+    return torch.reshape(self.adaptive_lossfun.alpha(), (1, 3))
     
   def beta(self):
     """Returns an image of betas."""
     assert not self.use_students_t
-    return torch.reshape(self.adaptive_lossfun.beta(), 3)
+    return torch.reshape(self.adaptive_lossfun.beta(), (1, 3))
 
   def df(self):
     """Returns an image of degrees of freedom, for the Student's T model."""
