@@ -504,8 +504,9 @@ class AdaptiveImageLossFunction(nn.Module):
       You'll probably want to minimize their sum or mean.
     """
     x_mat = self.transform_to_mat(x)
+    gt_x_mat = self.transform_to_mat(gt)
 
-    loss_mat = self.adaptive_lossfun.lossfun(x_mat, gt)
+    loss_mat = self.adaptive_lossfun.lossfun(x_mat, gt_x_mat)
 
     # Reshape the loss function's outputs to have the shapes as the input.
     loss = torch.reshape(loss_mat, [-1] + list(self.image_size))
