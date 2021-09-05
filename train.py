@@ -205,9 +205,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
-                #img_beta = adaptive_image_loss_func.beta()*127.0                
-                #img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
-                #log_images(img, depth, pred, img_alpha, img_beta, args, step)
+                img_beta = adaptive_image_loss_func.beta()*127.0                
+                img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
+                log_images(img, depth, pred, img_alpha, img_beta, args, step)
 
             step += 1
             scheduler.step()
