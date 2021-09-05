@@ -236,7 +236,7 @@ class DistributionSkewed():
     x = torch.as_tensor(x)
     
     alpha_ = torch.as_tensor(alpha)
-    alpha  = torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2])
+    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-1.5), torch.as_tensor(1.5))
     
     #print('alpha', alpha.shape)
     
