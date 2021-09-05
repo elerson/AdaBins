@@ -240,7 +240,7 @@ class DistributionSkewed():
     
     #print('alpha', alpha.shape)
     
-    beta = torch.as_tensor(beta)
+    beta_ = torch.as_tensor(beta)
     beta  = torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2])
     
     scale = torch.as_tensor(scale)
