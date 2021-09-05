@@ -238,8 +238,8 @@ class DistributionSkewed():
     alpha_ = torch.as_tensor(alpha)
     alpha  = torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2])
     
-    beta_ = torch.as_tensor(beta)
-    beta  = torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2])
+    beta = torch.as_tensor(beta)
+    #beta  = torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2])
     
     scale = torch.as_tensor(scale)
     assert (beta >= 0).all()
