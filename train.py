@@ -60,7 +60,7 @@ def log_images(img, depth, pred, img_alpha, img_beta, args, step):
     pred = colorize(pred.cpu().detach().numpy(), vmin=args.min_depth, vmax=args.max_depth)
     wandb.log(
         {
-            "Input": [wandb.Image(img.cpu().detach().numpy())],
+            "Input": [wandb.Image(img)],
             "GT": [wandb.Image(depth)],
             "Prediction": [wandb.Image(pred)],
             "Alpha": [wandb.Image(img_alpha.cpu().detach().numpy())],
