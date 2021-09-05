@@ -140,7 +140,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
     adaptive_image_loss_func = None
-    image_size = (1, input_height, input_width)
+    image_size = (1, args.input_height, args.input_width)
     #print(image_size)
     adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
