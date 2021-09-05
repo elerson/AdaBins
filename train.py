@@ -142,7 +142,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     adaptive_image_loss_func = None
     image_size = (1, args.input_height, args.input_width)
     #print(image_size)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=0.01, beta_hi=1.99, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=0.01, beta_hi=1.99, beta_init=0.1, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
     model.train()
@@ -206,9 +206,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
                 
-                #wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
-                #wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
-                #wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
+                wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
+                wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
+                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
 
                 wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
