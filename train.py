@@ -139,8 +139,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### losses ##############################################
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
-    image_size = (args.input_height, args.input_width, 3)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = None
     ################################################################################################
 
     model.train()
@@ -193,7 +192,12 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            l_dense = adaptive_image_loss_func.lossfun(pred - depth) #criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            
+            if adaptive_image_loss_func == None :
+                image_size = (depth.shape[1], depth.shape[2], depth.shape[3])
+                adaptive_image_loss_func = AdaptiveImageLossFunctionSkewed(image_size, np.float32, 0, beta_lo=0.001, beta_hi=1.999, scale_lo=1.0, scale_init=1.0)
+            
+            #l_dense = adaptive_image_loss_func.lossfun(pred - depth) #criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
@@ -207,9 +211,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
-                img_beta = adaptive_image_loss_func.beta()*127.0                
-                img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
-                log_images(img, depth, pred, img_alpha, img_beta, args, step)
+                #img_beta = adaptive_image_loss_func.beta()*127.0                
+                #img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
+                #log_images(img, depth, pred, img_alpha, img_beta, args, step)
 
             step += 1
             scheduler.step()
