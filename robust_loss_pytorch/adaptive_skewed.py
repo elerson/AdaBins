@@ -471,6 +471,7 @@ class AdaptiveImageLossFunction(nn.Module):
         torch.cuda.set_device(self.device)
 
     x_example = torch.zeros([1] + list(self.image_size)).type(self.float_dtype)
+    print(x_example.shape)
     x_example_mat = self.transform_to_mat(x_example)
     self.num_dims = x_example_mat.shape[1]
 
