@@ -56,15 +56,15 @@ def colorize(value, vmin=10, vmax=1000, cmap='plasma'):
 
 
 def log_images(img, depth, pred, img_alpha, img_beta, args, step):
-    depth = colorize(depth, vmin=args.min_depth, vmax=args.max_depth)
-    pred = colorize(pred, vmin=args.min_depth, vmax=args.max_depth)
+    depth = colorize(depth.cpu(), vmin=args.min_depth, vmax=args.max_depth)
+    pred = colorize(pred.cpu(), vmin=args.min_depth, vmax=args.max_depth)
     wandb.log(
         {
-            "Input": [wandb.Image(img)],
+            "Input": [wandb.Image(img.cpu())],
             "GT": [wandb.Image(depth)],
             "Prediction": [wandb.Image(pred)],
-            "Alpha": [wandb.Image(img_alpha)],
-            "Beta": [wandb.Image(img_beta)]
+            "Alpha": [wandb.Image(img_alpha.cpu())],
+            "Beta": [wandb.Image(img_beta.cpu())]
         }, step=step)
 
 
