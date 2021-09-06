@@ -191,8 +191,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             
             #print(pred.shape, depth.shape)
             new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
-            g = torch.log(new_pred) - torch.log(depth)
-            l_dense = adaptive_image_loss_func.lossfun(g, depth)#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
             l_dense = l_dense[mask].mean()
 
 
