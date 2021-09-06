@@ -158,7 +158,7 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
         
         
         #dist1, dist2, idx1, idx2 = self.chamfer_dist(input_points, target_points)
-        loss = chamfer_distance_with_batch(input_points, target_points, False)
+        loss = chamfer_distance_without_batch(input_points, target_points, False)
         #print('chang', loss)
         #loss, _ = chamfer_distance(x=input_points, y=target_points, y_lengths=target_lengths)
         return loss
