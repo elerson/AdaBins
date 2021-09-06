@@ -29,6 +29,7 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
     def __init__(self):
         super().__init__()
         self.name = "ChamferLoss"
+        self.chamfer_dist = ChamferDistance()
 
     def forward(self, bins, target_depth_maps):
         bin_centers = 0.5 * (bins[:, 1:] + bins[:, :-1])
@@ -43,9 +44,9 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
         target_points = pad_sequence(target_points, batch_first=True).unsqueeze(2)  # .shape = n, T, 1
 
 
-        chamfer_dist = ChamferDistance()
+        
 
-        dist1, dist2, idx1, idx2 = chamfer_dist(input_points,target_points)
+        dist1, dist2, idx1, idx2 = self.chamfer_dist(input_points, target_points)
         loss = (torch.mean(dist1)) + (torch.mean(dist2))
         #loss, _ = chamfer_distance(x=input_points, y=target_points, y_lengths=target_lengths)
         return loss
