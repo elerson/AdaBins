@@ -140,7 +140,7 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
     def __init__(self):
         super().__init__()
         self.name = "ChamferLoss"
-        self.chamfer_dist = chamfer2D.chamfer_2DDist()
+        #self.chamfer_dist = chamfer2D.chamfer_2DDist()
 
     def forward(self, bins, target_depth_maps):
         bin_centers = 0.5 * (bins[:, 1:] + bins[:, :-1])
