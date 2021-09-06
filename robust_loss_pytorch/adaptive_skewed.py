@@ -175,9 +175,10 @@ class AdaptiveLossFunction(nn.Module):
                   device=self.device)[np.newaxis, np.newaxis].repeat(
                       1, self.num_dims),
               requires_grad=True))
-      self.beta = lambda: util.affine_sigmoid(
-          self.latent_beta, lo=beta_lo, hi=beta_hi)
-          
+      #self.beta = lambda: util.affine_sigmoid(
+      #    self.latent_beta, lo=beta_lo, hi=beta_hi)
+      self.beta = self.latent_beta
+      
     if alpha_lo == alpha_hi:
       # If the range of alphas is a single item, then we just fix `alpha` to be
       # a constant.
@@ -201,9 +202,10 @@ class AdaptiveLossFunction(nn.Module):
                   device=self.device)[np.newaxis, np.newaxis].repeat(
                       1, self.num_dims),
               requires_grad=True))
-      self.alpha = lambda: util.affine_sigmoid(
-          self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
-
+      #self.alpha = lambda: util.affine_sigmoid(
+      #    self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
+      self.alpha = self.latent_alpha
+      
     if scale_lo == scale_init:
       # If the difference between the minimum and initial scale is zero, then
       # we just fix `scale` to be a constant.
