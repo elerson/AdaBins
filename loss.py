@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from pytorch3d.loss import chamfer_distance
+from chamfer_distance import ChamferDistance
 from torch.nn.utils.rnn import pad_sequence
 
 
@@ -42,5 +42,10 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
         target_lengths = torch.Tensor([len(t) for t in target_points]).long().to(target_depth_maps.device)
         target_points = pad_sequence(target_points, batch_first=True).unsqueeze(2)  # .shape = n, T, 1
 
-        loss, _ = chamfer_distance(x=input_points, y=target_points, y_lengths=target_lengths)
+
+        chamfer_dist = ChamferDistance()
+
+        dist1, dist2, idx1, idx2 = chamfer_dist(input_points,target_points)
+        loss = (torch.mean(dist1)) + (torch.mean(dist2))
+        #loss, _ = chamfer_distance(x=input_points, y=target_points, y_lengths=target_lengths)
         return loss
