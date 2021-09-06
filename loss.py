@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from chamfer_distance import ChamferDistance
+import ChamferDistancePytorch.chamfer3D.dist_chamfer_3D
 from torch.nn.utils.rnn import pad_sequence
 
 
@@ -29,7 +29,7 @@ class BinsChamferLoss(nn.Module):  # Bin centers regularizer used in AdaBins pap
     def __init__(self):
         super().__init__()
         self.name = "ChamferLoss"
-        self.chamfer_dist = ChamferDistance()
+        self.chamfer_dist = chamfer3D.dist_chamfer_3D.chamfer_3DDist()
 
     def forward(self, bins, target_depth_maps):
         bin_centers = 0.5 * (bins[:, 1:] + bins[:, :-1])
