@@ -22,6 +22,7 @@ from loss import SILogLoss, BinsChamferLoss
 from utils import RunningAverage, colorize
 from robust_loss_pytorch import AdaptiveImageLossFunctionSkewedNew
 
+
 # os.environ['WANDB_MODE'] = 'dryrun'
 PROJECT = "MDE-AdaBins"
 logging = True
@@ -55,16 +56,14 @@ def colorize(value, vmin=10, vmax=1000, cmap='plasma'):
     return img
 
 
-def log_images(img, depth, pred, img_alpha, img_beta, args, step):
-    depth = colorize(depth.cpu().detach().numpy(), vmin=args.min_depth, vmax=args.max_depth)
-    pred = colorize(pred.cpu().detach().numpy(), vmin=args.min_depth, vmax=args.max_depth)
+def log_images(img, depth, pred, args, step):
+    depth = colorize(depth, vmin=args.min_depth, vmax=args.max_depth)
+    pred = colorize(pred, vmin=args.min_depth, vmax=args.max_depth)
     wandb.log(
         {
             "Input": [wandb.Image(img)],
             "GT": [wandb.Image(depth)],
-            "Prediction": [wandb.Image(pred)],
-            "Alpha": [wandb.Image(img_alpha.cpu().detach().numpy())],
-            "Beta": [wandb.Image(img_beta.cpu().detach().numpy())]
+            "Prediction": [wandb.Image(pred)]
         }, step=step)
 
 
@@ -117,7 +116,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     if device is None:
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    
     ###################################### Logging setup #########################################
     print(f"Training {experiment_name}")
 
@@ -139,7 +137,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### losses ##############################################
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
-    adaptive_image_loss_func = None
+    
     image_size = (1, args.input_height, args.input_width)
     #print(image_size)
     adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=-0.5, beta_hi=0.5, beta_init=0.01, scale_lo=1.0, scale_init=1.0)
@@ -148,7 +146,16 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     model.train()
 
     ###################################### Optimizer ################################################
-    params = list(model.parameters()) + list(adaptive_image_loss_func.parameters())
+    if args.same_lr:
+        print("Using same LR")
+        params = model.parameters() 
+    else:
+        print("Using diff LR")
+        m = model.module if args.multigpu else model
+        params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
+                  {"params": m.get_10x_lr_params(), "lr": lr}]
+
+    params += list(adaptive_image_loss_func.parameters())
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
@@ -188,12 +195,10 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            
-            #print(pred.shape, depth.shape)
+            #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
             new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
             l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
             l_dense = l_dense[mask].mean()
-
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
@@ -215,11 +220,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
                 wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
-
-                
-                #img_beta = adaptive_image_loss_func.beta()*127.0                
-                #img_alpha = (adaptive_image_loss_func.alpha()+1.5)*(256./3)
-                #log_images(img, depth, pred, img_alpha, img_beta, args, step)
 
             step += 1
             scheduler.step()
@@ -333,7 +333,7 @@ if __name__ == '__main__':
                         choices=['linear', 'softmax', 'sigmoid'])
     parser.add_argument("--same-lr", '--same_lr', default=False, action="store_true",
                         help="Use same LR for all param groups")
-    parser.add_argument("--distributed", default=False, action="store_true", help="Use DDP if set")
+    parser.add_argument("--distributed", default=True, action="store_true", help="Use DDP if set")
     parser.add_argument("--root", default=".", type=str,
                         help="Root folder to save data in")
     parser.add_argument("--resume", default='', type=str, help="Resume from checkpoint")

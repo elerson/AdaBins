@@ -267,10 +267,10 @@ class DistributionSkewed():
     
     #print('alpha', alpha, beta)
     scale = torch.as_tensor(scale)
-    assert (beta >= 0).all()
-    assert (beta <= 2.0).all()
-    assert (alpha >= -1.5).all()
-    assert (alpha <= 1.5).all()
+    assert (beta >= -2.0).all()
+    assert (beta <= 10.0).all()
+    assert (alpha >= -5.1).all()
+    assert (alpha <= 5.1).all()
     assert (scale >= 0).all()
     float_dtype = x.dtype
     assert beta.dtype == float_dtype
