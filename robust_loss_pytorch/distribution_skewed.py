@@ -85,7 +85,7 @@ class DistributionSkewed():
       as spline_file:
       with np.load(spline_file, allow_pickle=True) as f:
         self._spline_2d_value = torch.tensor(f['value'])
-	self._spline_b_new_value = torch.tensor(f['value_b'])
+        self._spline_b_new_value = torch.tensor(f['value_b'])
         self._spline_2d_info = ast.literal_eval(str(f['info']))
 
     self.x_min, self.x_max = self._spline_2d_info['x_min'], self._spline_2d_info['x_max']
