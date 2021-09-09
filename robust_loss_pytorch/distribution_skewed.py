@@ -85,7 +85,7 @@ class DistributionSkewed():
       as spline_file:
       with np.load(spline_file, allow_pickle=True) as f:
         self._spline_2d_value = torch.tensor(f['value'])
-
+	self._spline_b_new_value = torch.tensor(f['value_b'])
         self._spline_2d_info = ast.literal_eval(str(f['info']))
 
     self.x_min, self.x_max = self._spline_2d_info['x_min'], self._spline_2d_info['x_max']
@@ -131,6 +131,28 @@ class DistributionSkewed():
     return r
     pass
 
+
+
+  def Z_max(self, beta):
+
+    
+    #print('info', alpha, beta)
+    
+
+    
+    beta = (torch.as_tensor(beta)-self.b_min)*self.Lb
+
+    beta = torch.flatten(beta)[0]
+    #print(self._spline_2d_value[:,1024])
+
+    
+    
+    r = cubic_spline.interpolate1d_new(beta.to(beta),
+                                       self._spline_b_new_value.to(beta))
+
+    #print(r)
+    return r
+    pass
 
   def log_base_partition_function(self, beta):
     r"""Approximate the distribution's log-partition function with a 1D spline.
@@ -201,7 +223,7 @@ class DistributionSkewed():
     #print(l)
     loss = general.lossfun(x, beta, scale, approximate=True)
     #print(torch.log(scale))
-    log_partition = torch.log(scale/2.0) + self.log_base_partition_function(beta) + self.Z_integral(x, alpha, beta)
+    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta) #self.log_base_partition_function(beta)
     nll = loss + log_partition
     return nll
     
@@ -236,12 +258,12 @@ class DistributionSkewed():
     x = torch.as_tensor(x)
     
     alpha_ = torch.as_tensor(alpha)
-    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-1.49), torch.as_tensor(1.49))
+    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-5.0), torch.as_tensor(5.0))
     
     #print('alpha', alpha.shape)
     
     beta_ = torch.as_tensor(beta)
-    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(0.01), torch.as_tensor(1.99))
+    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(-1.99), torch.as_tensor(9.99))
     
     #print('alpha', alpha, beta)
     scale = torch.as_tensor(scale)

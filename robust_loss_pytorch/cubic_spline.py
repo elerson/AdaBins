@@ -150,10 +150,10 @@ def interpolate2d(x, y, values):
 
 
 
-  x_lo = torch.floor(torch.clamp(x, torch.as_tensor(0),
+  x_lo = torch.floor(torch.clamp(x, torch.as_tensor(1),
                                  values.shape[0] - 3)).type(torch.int64)
   
-  y_lo = torch.floor(torch.clamp(y, torch.as_tensor(0),
+  y_lo = torch.floor(torch.clamp(y, torch.as_tensor(1),
                                  values.shape[1] - 3)).type(torch.int64)
 
 
@@ -173,4 +173,52 @@ def interpolate2d(x, y, values):
 
   return cubicInterpolate(t, (r0, r1, r2, r3))
 
+
+
+def interpolate1d_new(x, values):
+  r"""Perform cubic hermite spline interpolation on a 1D spline.
+
+  The x coordinates of the spline knots are at [0 : 1 : len(values)-1].
+  Queries outside of the range of the spline are computed using linear
+  extrapolation. See https://en.wikipedia.org/wiki/Cubic_Hermite_spline
+  for details, where "x" corresponds to `x`, "p" corresponds to `values`, and
+  "m" corresponds to `tangents`.
+
+  Args:
+    x: A tensor of any size of single or double precision floats containing the
+      set of values to be used for interpolation into the spline.
+    values: A vector of single or double precision floats containing the value
+      of each knot of the spline being interpolated into. Must be the same
+      length as `tangents` and the same type as `x`.
+    tangents: A vector of single or double precision floats containing the
+      tangent (derivative) of each knot of the spline being interpolated into.
+      Must be the same length as `values` and the same type as `x`.
+
+  Returns:
+    The result of interpolating along the spline defined by `values`, and
+    `tangents`, using `x` as the query values. Will be the same length and type
+    as `x`.
+  """
+  # if x.dtype == 'float64' or torch.as_tensor(x).dtype == torch.float64:
+  #   float_dtype = torch.float64
+  # else:
+  #   float_dtype = torch.float32
+  # x = torch.as_tensor(x, dtype=float_dtype)
+  # values = torch.as_tensor(values, dtype=float_dtype)
+  # tangents = torch.as_tensor(tangents, dtype=float_dtype)
+  assert torch.is_tensor(x)
+  assert torch.is_tensor(values)
+
+  float_dtype = x.dtype
+  assert values.dtype == float_dtype
+
+  assert len(values.shape) == 1
+
+  x_lo = torch.floor(torch.clamp(x, torch.as_tensor(1),
+                                 values.shape[0] - 3)).type(torch.int64)
+ 
+  # Compute the relative distance between each `x` and the knot below it.
+  t = x - x_lo.type(float_dtype)  
+
+  return cubicInterpolate(t, (values[x_lo-1], values[x_lo], values[x_lo+1], values[x_lo+2]))
 
