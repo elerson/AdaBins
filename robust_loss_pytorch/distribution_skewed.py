@@ -141,7 +141,7 @@ class DistributionSkewed():
 
     
     beta = (torch.as_tensor(beta)-self.b_min)*self.Lb
-
+    
     beta = torch.flatten(beta)[0]
     #print(self._spline_2d_value[:,1024])
 
@@ -280,7 +280,7 @@ class DistributionSkewed():
     #print(l)
     loss = general.lossfun(x, beta, scale, approximate=True)
     #print(torch.log(scale))
-    log_partition = torch.log(scale/2.0) + self.log_base_partition_function(beta) + self.Z_integral(x, alpha, beta)
+    log_partition = torch.log(scale/2.0)  + self.Z_max(beta) + self.Z_integral(x, alpha, beta)
     nll = loss + log_partition
     return nll
 

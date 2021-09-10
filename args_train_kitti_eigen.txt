@@ -1,7 +1,7 @@
 --bs 8
 --dataset kitti
 --lr 0.000357
---wd 0.1
+--wd 0.01
 --div_factor 25
 --final_div_factor 100
 --epochs 25

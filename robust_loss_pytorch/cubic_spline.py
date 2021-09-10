@@ -212,13 +212,13 @@ def interpolate1d_new(x, values):
   float_dtype = x.dtype
   assert values.dtype == float_dtype
 
-  assert len(values.shape) == 1
+  assert len(values.shape) == 2
 
   x_lo = torch.floor(torch.clamp(x, torch.as_tensor(1),
-                                 values.shape[0] - 3)).type(torch.int64)
+                                 values.shape[1] - 3)).type(torch.int64)
  
   # Compute the relative distance between each `x` and the knot below it.
   t = x - x_lo.type(float_dtype)  
 
-  return cubicInterpolate(t, (values[x_lo-1], values[x_lo], values[x_lo+1], values[x_lo+2]))
+  return cubicInterpolate(t, (values[0][x_lo-1], values[0][x_lo], values[0][x_lo+1], values[0][x_lo+2]))
 
