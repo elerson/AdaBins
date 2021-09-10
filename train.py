@@ -179,11 +179,11 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               final_div_factor=args.final_div_factor)
 
 
-    scheduler_loss = optim.lr_scheduler.OneCycleLR(optimizer_loss, lr, epochs=epochs, steps_per_epoch=len(train_loader),
-                                              cycle_momentum=True,
-                                              base_momentum=0.85, max_momentum=0.95, last_epoch=args.last_epoch,
-                                              div_factor=args.div_factor,
-                                              final_div_factor=args.final_div_factor)
+    # scheduler_loss = optim.lr_scheduler.OneCycleLR(optimizer_loss, lr, epochs=epochs, steps_per_epoch=len(train_loader),
+    #                                           cycle_momentum=True,
+    #                                           base_momentum=0.85, max_momentum=0.95, last_epoch=args.last_epoch,
+    #                                           div_factor=args.div_factor,
+    #                                           final_div_factor=args.final_div_factor)
 
     if args.resume != '' and scheduler is not None:
         scheduler.step(args.epoch + 1)
