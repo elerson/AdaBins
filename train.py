@@ -171,6 +171,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     step = args.epoch * iters
     best_loss = np.inf
 
+    step_new = step
     ###################################### Scheduler ###############################################
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epochs, steps_per_epoch=len(train_loader),
                                               cycle_momentum=True,
@@ -256,42 +257,43 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 model.train()
                 #################################################################################################
 
-        if should_log: wandb.log({"Epoch": epoch}, step=step)
-        for i, batch in tqdm(enumerate(train_loader), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
-                             total=len(train_loader)) if is_rank_zero(
-                args) else enumerate(train_loader):
+            
+            if should_log: wandb.log({"Epoch": epoch}, step=step)
+            for i, batch2 in tqdm(enumerate(train_loader), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
+                                 total=len(train_loader)) if is_rank_zero(
+                    args) else enumerate(train_loader):
 
-            optimizer_loss.zero_grad()
+                optimizer_loss.zero_grad()
 
-            img = batch['image'].to(device)
-            depth = batch['depth'].to(device)
-            if 'has_valid_depth' in batch:
-                if not batch['has_valid_depth']:
-                    continue
+                img = batch2['image'].to(device)
+                depth = batch2['depth'].to(device)
+                if 'has_valid_depth' in batch2:
+                    if not batch2['has_valid_depth']:
+                        continue
 
-            bin_edges, pred = model(img)
+                bin_edges, pred = model(img)
 
-            mask = depth > args.min_depth
-            #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
-            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-            l_dense = l_dense[mask].mean()
+                mask = depth > args.min_depth
+                #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+                new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
+                l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+                l_dense = l_dense[mask].mean()
 
-            loss = l_dense
-            loss.backward()
-            nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1)  # optional
-            optimizer_loss.step()
-            if should_log and step % 5 == 0:
-                
-                wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
-                wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
-                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
+                loss = l_dense
+                loss.backward()
+                nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1)  # optional
+                optimizer_loss.step()
+                if should_log and step_new % 5 == 0:
+                    
+                    wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step_new)
+                    wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step_new)
+                    wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step_new)
 
-                wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
-                wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
-                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
+                    wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step_new)
+                    wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step_new)
+                    wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step_new)
 
-            step += 1
+                step_new += 1
             scheduler_loss.step()
 
 
