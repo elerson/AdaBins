@@ -161,6 +161,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
+
+    print("optimizer AdamW")
     ################################################################################################
     # some globals
     iters = len(train_loader)
