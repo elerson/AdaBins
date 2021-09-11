@@ -155,6 +155,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
                   {"params": m.get_10x_lr_params(), "lr": lr}]
 
+    print("adaptive_image_loss_func")
     params += list(adaptive_image_loss_func.parameters())
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
