@@ -145,7 +145,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### Optimizer ################################################
     if args.same_lr:
         print("Using same LR")
-        params = model.parameters()
+        params = [model.parameters(), adaptive_image_loss_func.params()]
     else:
         print("Using diff LR")
         m = model.module if args.multigpu else model
