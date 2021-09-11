@@ -153,8 +153,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
-                  {"params": m.get_10x_lr_params(), "lr": lr},
-                  {"params": adaptive_image_loss_func.parameters(), "lr": lr}]
+                  {"params": m.get_10x_lr_params(), "lr": lr}]
 
     print("adaptive_image_loss_func")
     #params += list()
