@@ -158,27 +158,20 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     params += list(adaptive_image_loss_func.parameters())
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
-
-
-
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
-
     ################################################################################################
     # some globals
     iters = len(train_loader)
     step = args.epoch * iters
     best_loss = np.inf
 
-    step_new = step
     ###################################### Scheduler ###############################################
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epochs, steps_per_epoch=len(train_loader),
                                               cycle_momentum=True,
                                               base_momentum=0.85, max_momentum=0.95, last_epoch=args.last_epoch,
                                               div_factor=args.div_factor,
                                               final_div_factor=args.final_div_factor)
-
-
     if args.resume != '' and scheduler is not None:
         scheduler.step(args.epoch + 1)
     ################################################################################################
@@ -219,7 +212,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
-
+                
                 wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
                 wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
                 wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
@@ -227,7 +220,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
                 wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
-                
 
             step += 1
             scheduler.step()
