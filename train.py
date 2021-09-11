@@ -206,11 +206,21 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             loss = l_dense + args.w_chamfer * l_chamfer
             loss.backward()
-            #nn.utils.clip_grad_norm_([model.parameters(), adaptive_image_loss_func.parameters()], 0.1)  # optional
+            nn.utils.clip_grad_norm_(model.parameters(), 0.1)  # optional
+            nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1) 
+             
             optimizer.step()
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
+
+                wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
+                wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
+                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
+
+                wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
+                wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
+                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
 
             step += 1
             scheduler.step()
