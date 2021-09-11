@@ -257,11 +257,12 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 model.train()
                 #################################################################################################
 
-            
+            random_index = int(np.random.random()*50)
+            #single_example = dataset[random_index]
             if should_log: wandb.log({"Epoch": epoch}, step=step)
-            for i, batch2 in tqdm(enumerate(train_loader), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
-                                 total=len(train_loader)) if is_rank_zero(
-                    args) else enumerate(train_loader):
+            for i, batch2 in tqdm(enumerate(train_loader[random_index]), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
+                                 total=len(train_loader[random_index])) if is_rank_zero(
+                    args) else enumerate(train_loader[random_index]):
 
                 optimizer_loss.zero_grad()
 
