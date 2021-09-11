@@ -145,15 +145,15 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### Optimizer ################################################
     if args.same_lr:
         print("Using same LR")
-        params = [model.parameters(), adaptive_image_loss_func.params()]
+        params = [model.parameters(), adaptive_image_loss_func.parameters()]
     else:
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
                   {"params": m.get_10x_lr_params(), "lr": lr},
-                  {"params": adaptive_image_loss_func.params(), "lr": lr}]
+                  {"params": adaptive_image_loss_func.parameters(), "lr": lr}]
 
-    optimizer = optim.Adam(params, lr=args.lr)
+    optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
     ################################################################################################
