@@ -191,7 +191,13 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+
+            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            l_dense = l_dense[mask].mean()
+
+
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
@@ -200,7 +206,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             loss = l_dense + args.w_chamfer * l_chamfer
             loss.backward()
-            #nn.utils.clip_grad_norm_([model.parameters(), adaptive_image_loss_func.parameters()], 0.1)  # optional
+            nn.utils.clip_grad_norm_([model.parameters(), adaptive_image_loss_func.parameters()], 0.1)  # optional
             optimizer.step()
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
