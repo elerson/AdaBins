@@ -155,10 +155,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
                   {"params": m.get_10x_lr_params(), "lr": lr}]
 
-    params_loss = list(adaptive_image_loss_func.parameters())
+    params += list(adaptive_image_loss_func.parameters())
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
-    optimizer_loss = optim.AdamW(params_loss, weight_decay=args.wd, lr=args.lr)
 
 
 
@@ -179,12 +178,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               div_factor=args.div_factor,
                                               final_div_factor=args.final_div_factor)
 
-
-    scheduler_loss = optim.lr_scheduler.OneCycleLR(optimizer_loss, lr, epochs=epochs, steps_per_epoch=len(train_loader),
-                                              cycle_momentum=True,
-                                              base_momentum=0.85, max_momentum=0.95, last_epoch=args.last_epoch,
-                                              div_factor=args.div_factor,
-                                              final_div_factor=args.final_div_factor)
 
     if args.resume != '' and scheduler is not None:
         scheduler.step(args.epoch + 1)
@@ -221,11 +214,19 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             loss = l_dense + args.w_chamfer * l_chamfer
             loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), 0.1)  # optional
+            nn.utils.clip_grad_norm_([model.parameters(), adaptive_image_loss_func.parameters()], 0.1)  # optional
             optimizer.step()
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
+
+                wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
+                wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
+                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
+
+                wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
+                wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
+                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
                 
 
             step += 1
@@ -256,47 +257,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                     best_loss = metrics['abs_rel']
                 model.train()
                 #################################################################################################
-
-            random_index = int(np.random.random()*50)
-            #single_example = dataset[random_index]
-            if should_log: wandb.log({"Epoch": epoch}, step=step)
-            for i, batch2 in tqdm(enumerate(train_loader[random_index]), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
-                                 total=len(train_loader[random_index])) if is_rank_zero(
-                    args) else enumerate(train_loader[random_index]):
-
-                optimizer_loss.zero_grad()
-
-                img = batch2['image'].to(device)
-                depth = batch2['depth'].to(device)
-                if 'has_valid_depth' in batch2:
-                    if not batch2['has_valid_depth']:
-                        continue
-
-                bin_edges, pred = model(img)
-
-                mask = depth > args.min_depth
-                #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-                new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
-                l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-                l_dense = l_dense[mask].mean()
-
-                loss = l_dense
-                loss.backward()
-                #nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1)  # optional
-                optimizer_loss.step()
-                if should_log and step_new % 5 == 0:
-                    
-                    wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step_new)
-                    wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step_new)
-                    wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step_new)
-
-                    wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step_new)
-                    wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step_new)
-                    wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step_new)
-
-                step_new += 1
-            scheduler_loss.step()
-
 
     return model
 
