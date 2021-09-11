@@ -153,7 +153,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                   {"params": m.get_10x_lr_params(), "lr": lr},
                   {"params": adaptive_image_loss_func.params(), "lr": lr}]
 
-    optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
+    optimizer = optim.Adam(params, lr=args.lr)
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
     ################################################################################################
