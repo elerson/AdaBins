@@ -176,6 +176,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         scheduler.step(args.epoch + 1)
     ################################################################################################
 
+    print("STARTING")
     # max_iter = len(train_loader) * epochs
     for epoch in range(args.epoch, epochs):
         ################################# Train loop ##########################################################
