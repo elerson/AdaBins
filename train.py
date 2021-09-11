@@ -22,7 +22,6 @@ from loss import SILogLoss, BinsChamferLoss
 from utils import RunningAverage, colorize
 from robust_loss_pytorch import AdaptiveImageLossFunctionSkewedNew
 
-
 # os.environ['WANDB_MODE'] = 'dryrun'
 PROJECT = "MDE-AdaBins"
 logging = True
@@ -137,9 +136,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### losses ##############################################
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
-    
-    image_size = (1, args.input_height, args.input_width)
-    #print(image_size)
     adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=-0.5, beta_hi=0.5, beta_init=0.01, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
@@ -148,21 +144,17 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ###################################### Optimizer ################################################
     if args.same_lr:
         print("Using same LR")
-        params = model.parameters() 
+        params = model.parameters()
     else:
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
-                  {"params": m.get_10x_lr_params(), "lr": lr}]
-
-    print("adaptive_image_loss_func")
-    #params += list()
+                  {"params": m.get_10x_lr_params(), "lr": lr},
+                  {"params": adaptive_image_loss_func.params(), "lr": lr}]
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
         optimizer.load_state_dict(optimizer_state_dict)
-
-    print("optimizer AdamW")
     ################################################################################################
     # some globals
     iters = len(train_loader)
@@ -179,7 +171,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         scheduler.step(args.epoch + 1)
     ################################################################################################
 
-    print("STARTING")
     # max_iter = len(train_loader) * epochs
     for epoch in range(args.epoch, epochs):
         ################################# Train loop ##########################################################
@@ -199,10 +190,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
-            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-            l_dense = l_dense[mask].mean()
+            l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
             if args.w_chamfer > 0:
                 l_chamfer = criterion_bins(bin_edges, depth)
@@ -211,19 +199,11 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             loss = l_dense + args.w_chamfer * l_chamfer
             loss.backward()
-            nn.utils.clip_grad_norm_([model.parameters()], 0.1)  # optional
+            nn.utils.clip_grad_norm_([model.parameters(), adaptive_image_loss_func.params()], 0.1)  # optional
             optimizer.step()
             if should_log and step % 5 == 0:
                 wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
                 wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
-                
-                wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
-                wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
-                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
-
-                wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
-                wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
-                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
 
             step += 1
             scheduler.step()
