@@ -142,6 +142,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_init=1.0)
     ################################################################################################
 
+    model, _, _ = model_io.load_checkpoint(args.resume, model)
     model.train()
 
     ###################################### Optimizer ################################################
@@ -171,8 +172,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               div_factor=args.div_factor,
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
-        model, _, _ = model_io.load_checkpoint(args.resume, model)
-        model.train()
+
         scheduler.step(args.epoch + 1)
         
     ################################################################################################
