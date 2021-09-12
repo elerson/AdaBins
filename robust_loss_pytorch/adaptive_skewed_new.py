@@ -170,7 +170,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_beta',
            torch.nn.Parameter(
-              torch.as_tensor([[0,0, beta_init]]).to(
+              torch.as_tensor([[-0.8,-1.083,4.62]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       
@@ -197,7 +197,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_alpha',
           torch.nn.Parameter(
-              torch.as_tensor([[0,0, alpha_init]]).to(
+              torch.as_tensor([[-0.00106,-0.064,0.4396]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.alpha = lambda: util.affine_sigmoid(
@@ -218,7 +218,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_scale',
           torch.nn.Parameter(
-              torch.as_tensor([[0,0, scale_init]]).to(
+              torch.as_tensor([[-0.1203,-0.1555,0.4089]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.scale = lambda: util.affine_softplus(

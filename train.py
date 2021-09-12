@@ -157,8 +157,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
-                  {"params": m.get_10x_lr_params(), "lr": lr},
-                  {"params": adaptive_image_loss_func.parameters(), "lr": lr}]
+                  {"params": m.get_10x_lr_params(), "lr": lr}]
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
@@ -219,7 +218,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             loss = l_dense + args.w_chamfer * l_chamfer
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 0.1)  # optional
-            nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1) 
+            #nn.utils.clip_grad_norm_(adaptive_image_loss_func.parameters(), 0.1) 
              
             optimizer.step()
             if should_log and step % 5 == 0:
