@@ -76,6 +76,14 @@ def main_worker(gpu, ngpus_per_node, args):
     model = models.UnetAdaptiveBins.build(n_bins=args.n_bins, min_val=args.min_depth, max_val=args.max_depth,
                                           norm=args.norm)
 
+    print(args.resume)
+    ckpt = torch.load(args.resume,  map_location='cpu')
+    print('load 1')
+    state_dict = ckpt['model']
+    print('load 2')
+    model.load_state_dict(state_dict)
+    print('loaded')
+
     ################################################################################################
 
     if args.gpu is not None:  # If a gpu is set by user: NO PARALLELISM!!
@@ -142,13 +150,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_init=1.0)
     ################################################################################################
 
-    print(args.resume)
-    ckpt = torch.load(args.resume,  map_location='cpu')
-    print('load 1')
-    state_dict = ckpt['model']
-    print('load 2')
-    model.load_state_dict(state_dict)
-    print('loaded')
+
     model.train()
 
     ###################################### Optimizer ################################################
