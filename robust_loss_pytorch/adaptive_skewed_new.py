@@ -223,7 +223,7 @@ class AdaptiveLossFunction(nn.Module):
               requires_grad=True))
       #self.scale = lambda: util.affine_softplus(
        #   self.latent_scale, lo=scale_lo, ref=scale_init)
-      self.scale = self.latent_scale
+      self.scale = lambda: self.latent_scale
 
   def lossfun(self, x, gt, **kwargs):
     """Computes the loss on a matrix.
