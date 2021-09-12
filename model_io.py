@@ -34,13 +34,15 @@ def load_weights(model, filename, path="./saved_models"):
 
 
 def load_checkpoint(fpath, model, optimizer=None):
+    print('p1')
     ckpt = torch.load(fpath, map_location='gpu')
+    print('p3')
     if optimizer is None:
         optimizer = ckpt.get('optimizer', None)
     else:
         optimizer.load_state_dict(ckpt['optimizer'])
     epoch = ckpt['epoch']
-
+    print('p3')
     if 'model' in ckpt:
         ckpt = ckpt['model']
     load_dict = {}
@@ -53,7 +55,7 @@ def load_checkpoint(fpath, model, optimizer=None):
 
     modified = {}  # backward compatibility to older naming of architecture blocks
     for k, v in load_dict.items():
-        print(k)
+      
         if k.startswith('adaptive_bins_layer.embedding_conv.'):
             k_ = k.replace('adaptive_bins_layer.embedding_conv.',
                            'adaptive_bins_layer.conv3x3.')
