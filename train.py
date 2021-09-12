@@ -222,9 +222,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
                 wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
 
-                wandb.log({"s0": adaptive_image_loss_func.scale()[0][0]}, step=step)
-                wandb.log({"s1": adaptive_image_loss_func.scale()[0][1]}, step=step)
-                wandb.log({"s2": adaptive_image_loss_func.scale()[0][2]}, step=step)
+                # wandb.log({"s0": adaptive_image_loss_func.scale()[0][0]}, step=step)
+                # wandb.log({"s1": adaptive_image_loss_func.scale()[0][1]}, step=step)
+                # wandb.log({"s2": adaptive_image_loss_func.scale()[0][2]}, step=step)
 
             step += 1
             scheduler.step()
