@@ -169,6 +169,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     step = args.epoch * iters
     best_loss = np.inf
 
+    optimizer.step()
     ###################################### Scheduler ###############################################
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epochs, steps_per_epoch=len(train_loader),
                                               cycle_momentum=True,
@@ -177,6 +178,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
         pass
+
+
     scheduler.step()
         
     ################################################################################################
