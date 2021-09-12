@@ -528,5 +528,5 @@ class AdaptiveImageLossFunction(nn.Module):
 
   def scale(self):
     """Returns an image of scales."""
-    return torch.reshape(self.adaptive_lossfun.scale(), self.image_size)
+    return torch.reshape(self.adaptive_lossfun.scale(), (1, 3))
 
