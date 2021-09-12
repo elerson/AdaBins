@@ -143,8 +143,10 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     ################################################################################################
 
     print(args.resume)
-    ckpt = torch.load(args.resume, map_location=torch.device('cuda'))
+    ckpt = torch.load(args.resume,  map_location='cpu')
+    print('load 1')
     state_dict = ckpt['model']
+    print('load 2')
     model.load_state_dict(state_dict)
     print('loaded')
     model.train()
