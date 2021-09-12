@@ -179,7 +179,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     if args.resume != '' and scheduler is not None:
         pass
 
-
+    optimizer.step()
     scheduler.step()
         
     ################################################################################################
