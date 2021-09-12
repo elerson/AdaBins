@@ -4,6 +4,8 @@ import sys
 import uuid
 from datetime import datetime as dt
 
+
+import model_io
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -170,6 +172,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
         scheduler.step(args.epoch + 1)
+        model, _, _ = model_io.load_checkpoint(args.resume, model)
     ################################################################################################
 
     # max_iter = len(train_loader) * epochs

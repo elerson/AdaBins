@@ -27,3 +27,4 @@
 --do_kb_crop
 --garg_crop
 --gpu 0
+--resume ../AdaBins_kitti.pt
