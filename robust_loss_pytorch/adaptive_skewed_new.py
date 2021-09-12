@@ -169,16 +169,14 @@ class AdaptiveLossFunction(nn.Module):
           beta_init, lo=beta_lo, hi=beta_hi)
       self.register_parameter(
           'latent_beta',
-          torch.nn.Parameter(
-              latent_beta_init.clone().detach().to(
-                  dtype=self.float_dtype,
-                  device=self.device)[np.newaxis, np.newaxis].repeat(
-                      1, 3),
+           torch.nn.Parameter(
+              torch.as_tensor([[0,0, beta_init]]).to(
+                  dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       
-      self.beta = lambda: util.affine_sigmoid(
-          self.latent_beta, lo=beta_lo, hi=beta_hi)
-      #self.beta = lambda: self.latent_beta
+      #self.beta = lambda: util.affine_sigmoid(
+      #    self.latent_beta, lo=beta_lo, hi=beta_hi)
+      self.beta = lambda: self.latent_beta
       
           
     if alpha_lo == alpha_hi:
@@ -199,14 +197,12 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_alpha',
           torch.nn.Parameter(
-              latent_alpha_init.clone().detach().to(
-                  dtype=self.float_dtype,
-                  device=self.device)[np.newaxis, np.newaxis].repeat(
-                      1, 3),
+              torch.as_tensor([[0,0, alpha_init]]).to(
+                  dtype=self.float_dtype, device=self.device),
               requires_grad=True))
-      self.alpha = lambda: util.affine_sigmoid(
-          self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
-      #self.alpha = lambda: self.latent_alpha
+      #self.alpha = lambda: util.affine_sigmoid(
+      #    self.latent_alpha, lo=alpha_lo, hi=alpha_hi)
+      self.alpha = lambda: self.latent_alpha
       
       
     if scale_lo == scale_init:
@@ -222,11 +218,12 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_scale',
           torch.nn.Parameter(
-              torch.zeros((1, self.num_dims)).to(
+              torch.as_tensor([[0,0, scale_init]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
-      self.scale = lambda: util.affine_softplus(
-          self.latent_scale, lo=scale_lo, ref=scale_init)
+      #self.scale = lambda: util.affine_softplus(
+       #   self.latent_scale, lo=scale_lo, ref=scale_init)
+      self.scale = self.latent_scale
 
   def lossfun(self, x, gt, **kwargs):
     """Computes the loss on a matrix.

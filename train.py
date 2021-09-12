@@ -137,7 +137,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
     image_size = (1, args.input_height, args.input_width)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, beta_lo=-0.5, beta_hi=0.5, beta_init=0.01, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_init=1.0)
     ################################################################################################
 
     model.train()
@@ -193,7 +193,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             mask = depth > args.min_depth
             #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
-            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
+            new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bicubic', align_corners=True)
             l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
             l_dense = l_dense[mask].mean()
 
