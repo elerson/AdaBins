@@ -171,8 +171,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               div_factor=args.div_factor,
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
-        scheduler.step(args.epoch + 1)
         model, _, _ = model_io.load_checkpoint(args.resume, model)
+        scheduler.step(args.epoch + 1)
+        
     ################################################################################################
 
     # max_iter = len(train_loader) * epochs
