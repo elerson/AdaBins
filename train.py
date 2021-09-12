@@ -77,11 +77,7 @@ def main_worker(gpu, ngpus_per_node, args):
                                           norm=args.norm)
 
     print(args.resume)
-    ckpt = torch.load(args.resume,  map_location='cpu')
-    print('load 1')
-    state_dict = ckpt['model']
-    print('load 2')
-    model.load_state_dict(state_dict)
+    model, _, _ = model_io.load_checkpoint(args.resume, model)
     print('loaded')
 
     ################################################################################################
