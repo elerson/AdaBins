@@ -34,7 +34,7 @@ def load_weights(model, filename, path="./saved_models"):
 
 
 def load_checkpoint(fpath, model, optimizer=None):
-    ckpt = torch.load(fpath, map_location='cpu')
+    ckpt = torch.load(fpath, map_location='gpu')
     if optimizer is None:
         optimizer = ckpt.get('optimizer', None)
     else:
