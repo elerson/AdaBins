@@ -144,6 +144,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
     print(args.resume)
     model = model_io.load_checkpoint(args.resume, model)[0]
+    print('loaded')
     model.train()
 
     ###################################### Optimizer ################################################
