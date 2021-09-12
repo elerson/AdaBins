@@ -53,6 +53,7 @@ def load_checkpoint(fpath, model, optimizer=None):
 
     modified = {}  # backward compatibility to older naming of architecture blocks
     for k, v in load_dict.items():
+        print(k)
         if k.startswith('adaptive_bins_layer.embedding_conv.'):
             k_ = k.replace('adaptive_bins_layer.embedding_conv.',
                            'adaptive_bins_layer.conv3x3.')
