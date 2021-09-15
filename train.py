@@ -251,18 +251,19 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             ########################################################################################################
             if should_write and step % args.loss_pred_every == 0:
-               for batch in tqdm(train_val_loader, desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss ") if is_rank_zero(
-                args) else train_val_loader:
+               for j, batch2 in tqdm(enumerate(train_val_loader), desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss",
+                             total=len(train_val_loader)) if is_rank_zero(
+                args) else enumerate(train_val_loader):
                 
                 optimizer_loss.zero_grad()
 
-                if 'has_valid_depth' in batch:
-                    if not batch['has_valid_depth']:
+                if 'has_valid_depth' in batch2:
+                    if not batch2['has_valid_depth']:
                         continue
 
 
-                img = batch['image'].to(device)
-                depth = batch['depth'].to(device)
+                img = batch2['image'].to(device)
+                depth = batch2['depth'].to(device)
 
 
                 bin_edges, pred = model(img)
