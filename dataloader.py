@@ -27,7 +27,7 @@ def preprocessing_transforms(mode):
 
 class DepthDataLoader(object):
     def __init__(self, args, mode):
-        if mode == 'train' or mode == 'train_validation':
+        if mode == 'train':
             self.training_samples = DataLoadPreprocess(args, mode, transform=preprocessing_transforms(mode))
             if args.distributed:
                 self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.training_samples)
@@ -58,7 +58,7 @@ class DepthDataLoader(object):
             self.data = DataLoader(self.testing_samples, 1, shuffle=False, num_workers=1)
 
         else:
-            print('mode should be one of \'train, test, online_eval, train_validation\'. Got {}'.format(mode))
+            print('mode should be one of \'train, test, online_eval\'. Got {}'.format(mode))
 
 
 def remove_leading_slash(s):
@@ -73,9 +73,6 @@ class DataLoadPreprocess(Dataset):
         if mode == 'online_eval':
             with open(args.filenames_file_eval, 'r') as f:
                 self.filenames = f.readlines()
-        elif mode == 'train_validation':
-            with open(args.filenames_file_validation, 'r') as f:
-                self.filenames = f.readlines()
         else:
             with open(args.filenames_file, 'r') as f:
                 self.filenames = f.readlines()
@@ -89,16 +86,13 @@ class DataLoadPreprocess(Dataset):
         sample_path = self.filenames[idx]
         focal = float(sample_path.split()[2])
 
-        if self.mode == 'train' and self.mode == 'train_validation':
-
-
+        if self.mode == 'train':
             if self.args.dataset == 'kitti' and self.args.use_right is True and random.random() > 0.5:
                 image_path = os.path.join(self.args.data_path, remove_leading_slash(sample_path.split()[3]))
                 depth_path = os.path.join(self.args.gt_path, remove_leading_slash(sample_path.split()[4]))
             else:
                 image_path = os.path.join(self.args.data_path, remove_leading_slash(sample_path.split()[0]))
                 depth_path = os.path.join(self.args.gt_path, remove_leading_slash(sample_path.split()[1]))
-
 
             image = Image.open(image_path)
             depth_gt = Image.open(depth_path)
@@ -250,7 +244,7 @@ class ToTensor(object):
             return {'image': image, 'focal': focal}
 
         depth = sample['depth']
-        if self.mode == 'train' or self.mode == 'train_validation':
+        if self.mode == 'train':
             depth = self.to_tensor(depth)
             return {'image': image, 'depth': depth, 'focal': focal}
         else:
