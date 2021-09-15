@@ -76,9 +76,9 @@ def main_worker(gpu, ngpus_per_node, args):
     model = models.UnetAdaptiveBins.build(n_bins=args.n_bins, min_val=args.min_depth, max_val=args.max_depth,
                                           norm=args.norm)
 
-    print(args.resume)
-    model, _, _ = model_io.load_checkpoint(args.resume, model)
-    print('loaded')
+    #print(args.resume)
+    #model, _, _ = model_io.load_checkpoint(args.resume, model)
+    #print('loaded')
 
     ################################################################################################
 
