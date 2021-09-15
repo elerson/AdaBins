@@ -73,7 +73,7 @@ class DataLoadPreprocess(Dataset):
         if mode == 'online_eval':
             with open(args.filenames_file_eval, 'r') as f:
                 self.filenames = f.readlines()
-        elif mode == 'train_validation'::
+        elif mode == 'train_validation':
             with open(args.filenames_file_validation, 'r') as f:
                 self.filenames = f.readlines()
         else:
