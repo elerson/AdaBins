@@ -27,7 +27,7 @@ def preprocessing_transforms(mode):
 
 class DepthDataLoader(object):
     def __init__(self, args, mode):
-        if mode == 'train':
+        if mode == 'train' == or mode == 'train_validation':
             self.training_samples = DataLoadPreprocess(args, mode, transform=preprocessing_transforms(mode))
             if args.distributed:
                 self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.training_samples)
@@ -73,6 +73,9 @@ class DataLoadPreprocess(Dataset):
         if mode == 'online_eval':
             with open(args.filenames_file_eval, 'r') as f:
                 self.filenames = f.readlines()
+        elif mode == 'train_validation':
+            with open(args.filenames_file, 'r') as f:
+                self.filenames = f.readlines()
         else:
             with open(args.filenames_file, 'r') as f:
                 self.filenames = f.readlines()
@@ -86,7 +89,7 @@ class DataLoadPreprocess(Dataset):
         sample_path = self.filenames[idx]
         focal = float(sample_path.split()[2])
 
-        if self.mode == 'train':
+        if self.mode == 'train' or self.mode == 'train_validation':
             if self.args.dataset == 'kitti' and self.args.use_right is True and random.random() > 0.5:
                 image_path = os.path.join(self.args.data_path, remove_leading_slash(sample_path.split()[3]))
                 depth_path = os.path.join(self.args.gt_path, remove_leading_slash(sample_path.split()[4]))
@@ -244,7 +247,7 @@ class ToTensor(object):
             return {'image': image, 'focal': focal}
 
         depth = sample['depth']
-        if self.mode == 'train':
+        if self.mode == 'train' or self.mode == 'train_validation':
             depth = self.to_tensor(depth)
             return {'image': image, 'depth': depth, 'focal': focal}
         else:
