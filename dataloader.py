@@ -89,7 +89,7 @@ class DataLoadPreprocess(Dataset):
         sample_path = self.filenames[idx]
         focal = float(sample_path.split()[2])
 
-        if self.mode == 'train' and self.mode == 'train_val':
+        if self.mode == 'train' and self.mode == 'train_validation':
 
 
             if self.args.dataset == 'kitti' and self.args.use_right is True and random.random() > 0.5:
