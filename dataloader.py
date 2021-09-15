@@ -27,7 +27,7 @@ def preprocessing_transforms(mode):
 
 class DepthDataLoader(object):
     def __init__(self, args, mode):
-        if mode == 'train':
+        if mode == 'train' or mode == 'train_validation':
             self.training_samples = DataLoadPreprocess(args, mode, transform=preprocessing_transforms(mode))
             if args.distributed:
                 self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.training_samples)
@@ -58,7 +58,7 @@ class DepthDataLoader(object):
             self.data = DataLoader(self.testing_samples, 1, shuffle=False, num_workers=1)
 
         else:
-            print('mode should be one of \'train, test, online_eval\'. Got {}'.format(mode))
+            print('mode should be one of \'train, test, online_eval, train_validation\'. Got {}'.format(mode))
 
 
 def remove_leading_slash(s):
