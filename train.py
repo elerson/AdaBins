@@ -195,11 +195,13 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
             optimizer.zero_grad()
 
-            img = batch['image'].to(device)
-            depth = batch['depth'].to(device)
             if 'has_valid_depth' in batch:
                 if not batch['has_valid_depth']:
                     continue
+
+            img = batch['image'].to(device)
+            depth = batch['depth'].to(device)
+
 
             bin_edges, pred = model(img)
 
@@ -254,11 +256,14 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 
                 optimizer_loss.zero_grad()
 
-                img = batch['image'].to(device)
-                depth = batch['depth'].to(device)
                 if 'has_valid_depth' in batch:
                     if not batch['has_valid_depth']:
                         continue
+
+                        
+                img = batch['image'].to(device)
+                depth = batch['depth'].to(device)
+
 
                 bin_edges, pred = model(img)
 
