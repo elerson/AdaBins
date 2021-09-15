@@ -214,11 +214,11 @@ class DataLoadPreprocess(Dataset):
         if self.args.dataset == 'nyu':
             brightness = random.uniform(0.75, 1.25)
         else:
-            brightness = random.uniform(0.9, 1.1)
+            brightness = random.uniform(0.75, 1.25)
         image_aug = image_aug * brightness
 
         # color augmentation
-        colors = np.random.uniform(0.9, 1.1, size=3)
+        colors = np.random.uniform(0.8, 1.3, size=3)
         white = np.ones((image.shape[0], image.shape[1]))
         color_image = np.stack([white * colors[i] for i in range(3)], axis=2)
         image_aug *= color_image

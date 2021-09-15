@@ -1,4 +1,4 @@
---bs 8
+--bs 3
 --dataset kitti
 --lr 0.000357
 --wd 0.01
@@ -9,7 +9,7 @@
 --name UnetAdaptiveBins
 --n_bins 256
 --norm=linear
---w_chamfer 0.1
+--w_chamfer 0.01
 --data_path ../kitti/
 --gt_path ../gt_kitti/
 --filenames_file ./train_test_inputs/kitti_eigen_train_files_with_gt.txt
@@ -18,7 +18,7 @@
 --min_depth 0.001
 --max_depth 80
 --do_random_rotate
---degree 1.0
+--degree 2.0
 --data_path_eval ../kitti/
 --gt_path_eval ../gt_kitti/
 --filenames_file_eval ./train_test_inputs/kitti_eigen_test_files_with_gt.txt
@@ -27,4 +27,4 @@
 --do_kb_crop
 --garg_crop
 --gpu 0
---resume ../AdaBins_kitti.pt
+--resume pretrained/AdaBins_kitti.pt

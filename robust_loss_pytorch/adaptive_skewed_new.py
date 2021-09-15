@@ -170,7 +170,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_beta',
            torch.nn.Parameter(
-              torch.as_tensor([[-0.8,-1.083,4.62]]).to(
+              torch.as_tensor([[0.0,0.0,1.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       
@@ -197,7 +197,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_alpha',
           torch.nn.Parameter(
-              torch.as_tensor([[-0.00106,-0.064,0.4396]]).to(
+              torch.as_tensor([[0, .0, 0.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.alpha = lambda: util.affine_sigmoid(
@@ -218,7 +218,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_scale',
           torch.nn.Parameter(
-              torch.as_tensor([[-0.1203,-0.1555,0.4089]]).to(
+              torch.as_tensor([[0, 0, 1.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.scale = lambda: util.affine_softplus(
@@ -244,7 +244,7 @@ class AdaptiveLossFunction(nn.Module):
     """
     x = torch.as_tensor(x)
     assert len(x.shape) == 2
-    assert x.shape[1] == self.num_dims
+    #assert x.shape[1] == self.num_dims
     assert x.dtype == self.float_dtype
     return self.distribution.nllfun_gt(x, gt, self.alpha(), self.beta(), self.scale(), **kwargs)
 
@@ -501,14 +501,13 @@ class AdaptiveImageLossFunction(nn.Module):
       and so they are not actually bounded from below by zero.
       You'll probably want to minimize their sum or mean.
     """
-    x_mat = self.transform_to_mat(x)
-    gt_x_mat = self.transform_to_mat(gt)
+    x_mat = torch.reshape(x.flatten(), (1, -1))#self.transform_to_mat(x)
+    gt_x_mat = torch.reshape(gt.flatten(), (1, -1)) #self.tranhape corm_to_mat(gt)
 
     loss_mat = self.adaptive_lossfun.lossfun(x_mat, gt_x_mat)
 
     # Reshape the loss function's outputs to have the shapes as the input.
-    loss = torch.reshape(loss_mat, [-1] + list(self.image_size))
-    return loss
+    return loss_mat
 
   def alpha(self):
     """Returns an image of betas."""

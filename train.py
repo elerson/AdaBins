@@ -143,7 +143,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
     image_size = (1, args.input_height, args.input_width)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_lo=1.0, scale_init=1.0)
     ################################################################################################
 
 
@@ -157,7 +157,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
-                  {"params": m.get_10x_lr_params(), "lr": lr}]
+                  {"params": m.get_10x_lr_params(), "lr": lr},
+                  {"params": adaptive_image_loss_func.parameters(), "lr": 1.0}]
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
@@ -202,12 +203,21 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             bin_edges, pred = model(img)
 
             mask = depth > args.min_depth
-            #l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            
+            l_dense_1 = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
 
             new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bicubic', align_corners=True)
-            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-            l_dense = l_dense[mask].mean()
-
+            
+            depth2    = depth[mask]
+            new_pred = new_pred[mask]
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+           
+            #mask1 = l_dense < args.max_depth
+            #mask2 = l_dense < args.max_depth
+            #mask  = torch.logical_and(mask, mask1)
+            #mask  = torch.logical_and(mask, mask2)
+            l_dense = l_dense.mean() + l_dense_1 
+             
 
 
             if args.w_chamfer > 0:
@@ -233,9 +243,9 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
                 wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
 
-                wandb.log({"ss0": adaptive_image_loss_func.scale()[0][0]}, step=step)
-                wandb.log({"ss1": adaptive_image_loss_func.scale()[0][1]}, step=step)
-                wandb.log({"ss2": adaptive_image_loss_func.scale()[0][2]}, step=step)
+#                wandb.log({"ss0": adaptive_image_loss_func.scale()[0][0]}, step=step)
+#                wandb.log({"ss1": adaptive_image_loss_func.scale()[0][1]}, step=step)
+#                wandb.log({"ss2": adaptive_image_loss_func.scale()[0][2]}, step=step)
 
             step += 1
             scheduler.step()
@@ -246,7 +256,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
                 ################################# Validation loop ##################################################
                 model.eval()
-                metrics, val_si = validate(args, model, test_loader, criterion_ueff, epoch, epochs, device)
+                metrics, val_si = validate(args, model, test_loader, criterion_ueff, epoch, epochs, device, adaptive_image_loss_func)
 
                 # print("Validated: {}".format(metrics))
                 if should_log:
@@ -269,7 +279,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     return model
 
 
-def validate(args, model, test_loader, criterion_ueff, epoch, epochs, device='cpu'):
+def validate(args, model, test_loader, criterion_ueff, epoch, epochs, device='cpu', loss_adaptive=None):
     with torch.no_grad():
         val_si = RunningAverage()
         # val_bins = RunningAverage()
@@ -285,8 +295,17 @@ def validate(args, model, test_loader, criterion_ueff, epoch, epochs, device='cp
             bins, pred = model(img)
 
             mask = depth > args.min_depth
+            
             l_dense = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            #new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bicubic', align_corners=True)
+            #l_dense = loss_adaptive.lossfun(new_pred - depth, torch.sqrt(depth))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            #l_dense = l_dense[mask].mean()
+
             val_si.append(l_dense.item())
+
+            #depth = depth.squeeze().unsqueeze(0).unsqueeze(0)
+            #mask = depth > args.min_depth
+
 
             pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bilinear', align_corners=True)
 

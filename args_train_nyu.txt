@@ -1,4 +1,4 @@
---bs 16
+--bs 3
 --distributed
 --dataset nyu
 --lr 0.000357
@@ -12,8 +12,8 @@
 --norm linear
 --w_chamfer 0.1
 --root .
---data_path ../dataset/nyu_depth_v2/sync/
---gt_path ../dataset/nyu_depth_v2/sync/
+--data_path /homeLocal/elerson/workspace/dataset/nyu_depth_v2/sync/
+--gt_path /homeLocal/elerson/workspace/dataset/nyu_depth_v2/sync/
 --filenames_file ./train_test_inputs/nyudepthv2_train_files_with_gt.txt
 --input_height 416
 --input_width 544
@@ -22,9 +22,10 @@
 --do_random_rotate
 --degree 2.5
 --validate_every 500
---data_path_eval ../dataset/nyu_depth_v2/official_splits/test/
---gt_path_eval ../dataset/nyu_depth_v2/official_splits/test/
+--data_path_eval /homeLocal/elerson/workspace/dataset/nyu_depth_v2/official_splits/test/
+--gt_path_eval /homeLocal/elerson/workspace/dataset/nyu_depth_v2/official_splits/test/
 --filenames_file_eval ./train_test_inputs/nyudepthv2_test_files_with_gt.txt
 --min_depth_eval 1e-3
 --max_depth_eval 10
 --eigen_crop
+--resume pretrained/AdaBins_nyu.pt
