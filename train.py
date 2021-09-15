@@ -138,6 +138,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
     train_loader = DepthDataLoader(args, 'train').data
     test_loader = DepthDataLoader(args, 'online_eval').data
+    train_val_loader = DepthDataLoader(args, 'train_val').data
+
 
     ###################################### losses ##############################################
     criterion_ueff = SILogLoss()
@@ -157,8 +159,10 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
         print("Using diff LR")
         m = model.module if args.multigpu else model
         params = [{"params": m.get_1x_lr_params(), "lr": lr / 10},
-                  {"params": m.get_10x_lr_params(), "lr": lr},
-                  {"params": adaptive_image_loss_func.parameters(), "lr": 1.0}]
+                  {"params": m.get_10x_lr_params(), "lr": lr}]
+
+    optimizer_loss = optim.Adam(adaptive_image_loss_func.parameters(), lr= 0.1)
+
 
     optimizer = optim.AdamW(params, weight_decay=args.wd, lr=args.lr)
     if optimizer_state_dict is not None:
@@ -169,7 +173,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     step = args.epoch * iters
     best_loss = np.inf
 
-    optimizer.step()
+
     ###################################### Scheduler ###############################################
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epochs, steps_per_epoch=len(train_loader),
                                               cycle_momentum=True,
@@ -178,9 +182,6 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
         pass
-
-    optimizer.step()
-    scheduler.step()
         
     ################################################################################################
 
@@ -205,17 +206,13 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             mask = depth > args.min_depth
             
             l_dense_1 = criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
-
             new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bicubic', align_corners=True)
             
             depth2    = depth[mask]
             new_pred = new_pred[mask]
             l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
            
-            #mask1 = l_dense < args.max_depth
-            #mask2 = l_dense < args.max_depth
-            #mask  = torch.logical_and(mask, mask1)
-            #mask  = torch.logical_and(mask, mask2)
+
             l_dense = l_dense.mean() + l_dense_1 
              
 
@@ -251,6 +248,35 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             scheduler.step()
 
             ########################################################################################################
+            if should_write and step % args.loss_pred_every == 0:
+               for batch in tqdm(train_val_loader, desc=f"Epoch: {epoch + 1}/{epochs}. Loop: Train Loss ") if is_rank_zero(
+                args) else train_val_loader:
+                
+                optimizer_loss.zero_grad()
+
+                img = batch['image'].to(device)
+                depth = batch['depth'].to(device)
+                if 'has_valid_depth' in batch:
+                    if not batch['has_valid_depth']:
+                        continue
+
+                bin_edges, pred = model(img)
+
+                mask = depth > args.min_depth
+            
+                new_pred = nn.functional.interpolate(pred, depth.shape[-2:], mode='bicubic', align_corners=True)
+            
+                depth2    = depth[mask]
+                new_pred = new_pred[mask]
+                l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+           
+
+                l_dense = l_dense.mean()
+                l_dense.backward()
+                optimizer_loss.step()
+
+
+
 
             if should_write and step % args.validate_every == 0:
 
@@ -361,6 +387,7 @@ if __name__ == '__main__':
                         help="final div factor for lr")
 
     parser.add_argument('--bs', default=16, type=int, help='batch size')
+    parser.add_argument('--loss-pred-every', '--loss_pred_every', default=100, type=int, help='validation period')
     parser.add_argument('--validate-every', '--validate_every', default=100, type=int, help='validation period')
     parser.add_argument('--gpu', default=None, type=int, help='Which gpu to use')
     parser.add_argument("--name", default="UnetAdaptiveBins")
@@ -384,9 +411,15 @@ if __name__ == '__main__':
     parser.add_argument("--gt_path", default='../dataset/nyu/sync/', type=str,
                         help="path to dataset")
 
+
     parser.add_argument('--filenames_file',
                         default="./train_test_inputs/nyudepthv2_train_files_with_gt.txt",
                         type=str, help='path to the filenames text file')
+
+    parser.add_argument('--filenames_file_validation',
+                    default="./train_test_inputs/nyudepthv2_train_files_with_gt_val.txt",
+                    type=str, help='path to the filenames text file')
+    
 
     parser.add_argument('--input_height', type=int, help='input height', default=416)
     parser.add_argument('--input_width', type=int, help='input width', default=544)

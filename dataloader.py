@@ -73,6 +73,9 @@ class DataLoadPreprocess(Dataset):
         if mode == 'online_eval':
             with open(args.filenames_file_eval, 'r') as f:
                 self.filenames = f.readlines()
+        elif mode == 'train_validation'::
+            with open(args.filenames_file_validation, 'r') as f:
+                self.filenames = f.readlines()
         else:
             with open(args.filenames_file, 'r') as f:
                 self.filenames = f.readlines()
@@ -86,13 +89,16 @@ class DataLoadPreprocess(Dataset):
         sample_path = self.filenames[idx]
         focal = float(sample_path.split()[2])
 
-        if self.mode == 'train':
+        if self.mode == 'train' and self.mode == 'train_val':
+
+
             if self.args.dataset == 'kitti' and self.args.use_right is True and random.random() > 0.5:
                 image_path = os.path.join(self.args.data_path, remove_leading_slash(sample_path.split()[3]))
                 depth_path = os.path.join(self.args.gt_path, remove_leading_slash(sample_path.split()[4]))
             else:
                 image_path = os.path.join(self.args.data_path, remove_leading_slash(sample_path.split()[0]))
                 depth_path = os.path.join(self.args.gt_path, remove_leading_slash(sample_path.split()[1]))
+
 
             image = Image.open(image_path)
             depth_gt = Image.open(depth_path)
@@ -214,11 +220,11 @@ class DataLoadPreprocess(Dataset):
         if self.args.dataset == 'nyu':
             brightness = random.uniform(0.75, 1.25)
         else:
-            brightness = random.uniform(0.75, 1.25)
+            brightness = random.uniform(0.9, 1.1)
         image_aug = image_aug * brightness
 
         # color augmentation
-        colors = np.random.uniform(0.8, 1.3, size=3)
+        colors = np.random.uniform(0.9, 1.1, size=3)
         white = np.ones((image.shape[0], image.shape[1]))
         color_image = np.stack([white * colors[i] for i in range(3)], axis=2)
         image_aug *= color_image
