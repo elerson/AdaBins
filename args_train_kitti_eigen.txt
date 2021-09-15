@@ -9,7 +9,7 @@
 --name UnetAdaptiveBins
 --n_bins 256
 --norm=linear
---w_chamfer 0.01
+--w_chamfer 0.1
 --data_path ../kitti/
 --gt_path ../gt_kitti/
 --filenames_file ./train_test_inputs/kitti_eigen_train_files_with_gt.txt
