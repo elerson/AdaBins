@@ -138,7 +138,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
     train_loader = DepthDataLoader(args, 'train').data
     test_loader = DepthDataLoader(args, 'online_eval').data
-    train_val_loader = DepthDataLoader(args, 'online_eval').data#DepthDataLoader(args, 'train_validation').data
+    train_val_loader = DepthDataLoader(args, 'train_validation').data
 
 
     ###################################### losses ##############################################
