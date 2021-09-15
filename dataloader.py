@@ -74,7 +74,7 @@ class DataLoadPreprocess(Dataset):
             with open(args.filenames_file_eval, 'r') as f:
                 self.filenames = f.readlines()
         elif mode == 'train_validation':
-            with open(args.filenames_file, 'r') as f:
+            with open(args.filenames_file_validation, 'r') as f:
                 self.filenames = f.readlines()
         else:
             with open(args.filenames_file, 'r') as f:
