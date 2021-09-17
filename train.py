@@ -76,9 +76,9 @@ def main_worker(gpu, ngpus_per_node, args):
     model = models.UnetAdaptiveBins.build(n_bins=args.n_bins, min_val=args.min_depth, max_val=args.max_depth,
                                           norm=args.norm)
 
-    #print(args.resume)
-    #model, _, _ = model_io.load_checkpoint(args.resume, model)
-    #print('loaded')
+    print(args.resume)
+    model, _, _ = model_io.load_checkpoint(args.resume, model)
+    print('loaded')
 
     ################################################################################################
 
@@ -182,7 +182,8 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
                                               final_div_factor=args.final_div_factor)
     if args.resume != '' and scheduler is not None:
         pass
-        
+    optimizer.step()
+    scheduler.step()
     ################################################################################################
 
     # max_iter = len(train_loader) * epochs
