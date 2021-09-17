@@ -258,12 +258,12 @@ class DistributionSkewed():
     x = torch.as_tensor(x)
     
     alpha_ = torch.as_tensor(alpha)
-    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-1.499), torch.as_tensor(1.499))
+    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-2.499), torch.as_tensor(2.499))
     
     #print('alpha', alpha.shape)
     
     beta_ = torch.as_tensor(beta)
-    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(0.001), torch.as_tensor(1.99))
+    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(-9.0), torch.as_tensor(9.99))
     
 
     scale_ = torch.as_tensor(scale)
@@ -272,10 +272,10 @@ class DistributionSkewed():
 
     #print('alpha', alpha, beta)
     scale = torch.as_tensor(scale)
-    assert (beta >= 0).all()
-    assert (beta <= 2.0).all()
-    assert (alpha >= -1.5).all()
-    assert (alpha <= 1.5).all()
+    # assert (beta >= 0).all()
+    # assert (beta <= 2.0).all()
+    # assert (alpha >= -1.5).all()
+    # assert (alpha <= 1.5).all()
     assert (scale >= 0).all()
     float_dtype = x.dtype
     assert beta.dtype == float_dtype

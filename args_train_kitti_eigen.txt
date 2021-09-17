@@ -1,7 +1,7 @@
 --bs 3
 --dataset kitti
 --lr 0.000357
---wd 0.01
+--wd 0.1
 --div_factor 25
 --final_div_factor 100
 --epochs 25
@@ -28,4 +28,3 @@
 --do_kb_crop
 --garg_crop
 --gpu 0
---resume pretrained/AdaBins_kitti.pt
