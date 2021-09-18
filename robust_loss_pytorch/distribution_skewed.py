@@ -106,13 +106,13 @@ class DistributionSkewed():
         self._spline_tangents = torch.tensor(f['tangents'])
 
 
-  def Z_integral(self, x, alpha, beta):
+  def Z_integral(self, x, alpha, beta, scale):
 
     
     #print('info', alpha, beta)
     
 
-    new_x = (x*alpha-self.x_min)*self.L
+    new_x = ((x*alpha)/scale -self.x_min)*self.L
     #new_x = torch.flatten(new_x)
     
     alpha = torch.as_tensor(alpha)
@@ -285,7 +285,7 @@ class DistributionSkewed():
     #print(l)
     loss = general.lossfun(x, beta, scale, approximate=True)
     #print(torch.log(scale))
-    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta)
+    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta, scale)
     nll = loss + log_partition
     return nll
 
