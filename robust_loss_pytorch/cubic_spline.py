@@ -149,20 +149,24 @@ def interpolate2d(x, y, values):
   assert len(values.shape) == 2
 
 
-
-  x_lo = torch.floor(torch.clamp(x, torch.as_tensor(1),
-                                 values.shape[0] - 3)).type(torch.int64)
+  x    =  torch.clamp(x, torch.as_tensor(1),
+                                 values.shape[0] - 3)
+                                 
+  y    = torch.clamp(y, torch.as_tensor(1),
+                                 values.shape[1] - 3)
   
-  y_lo = torch.floor(torch.clamp(y, torch.as_tensor(1),
-                                 values.shape[1] - 3)).type(torch.int64)
+  x_lo = torch.floor(x).type(torch.int64)
+  
+  y_lo = torch.floor(y).type(torch.int64)
+  
 
 
   # Compute the relative distance between each `x` and the knot below it.
-  t = x - x_lo.type(float_dtype)
+  t = x.type(float_dtype) - torch.as_tensor(x_lo.type(float_dtype))
 
-  s = y - y_lo.type(float_dtype)
+  s = y.type(float_dtype) - torch.as_tensor(y_lo.type(float_dtype))
 
-  #print(x, y)
+  
 
   
   r0 = cubicInterpolate(s, (values[x_lo-1][y_lo-1], values[x_lo-1][y_lo], values[x_lo-1][y_lo+1], values[x_lo-1][y_lo+2]))
@@ -170,7 +174,6 @@ def interpolate2d(x, y, values):
   r2 = cubicInterpolate(s, (values[x_lo+1][y_lo-1], values[x_lo+1][y_lo], values[x_lo+1][y_lo+1], values[x_lo+1][y_lo+2]))
   r3 = cubicInterpolate(s, (values[x_lo+2][y_lo-1], values[x_lo+2][y_lo], values[x_lo+2][y_lo+1], values[x_lo+2][y_lo+2]))
  
-
   return cubicInterpolate(t, (r0, r1, r2, r3))
 
 
@@ -214,8 +217,10 @@ def interpolate1d_new(x, values):
 
   assert len(values.shape) == 2
 
-  x_lo = torch.floor(torch.clamp(x, torch.as_tensor(1),
-                                 values.shape[1] - 3)).type(torch.int64)
+  x = torch.clamp(x, torch.as_tensor(1),
+                                 values.shape[1] - 3)                                 
+                                 
+  x_lo = torch.floor(x).type(torch.int64)
  
   # Compute the relative distance between each `x` and the knot below it.
   t = x - x_lo.type(float_dtype)  

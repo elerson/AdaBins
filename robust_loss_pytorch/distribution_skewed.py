@@ -83,7 +83,9 @@ class DistributionSkewed():
     # the script in fit_partition_spline.py
     with resource_stream(__name__, 'resources/skewd_file.npz') \
       as spline_file:
+      
       with np.load(spline_file, allow_pickle=True) as f:
+        #print(torch.as_tensor(f['value_b']))
         self._spline_2d_value = torch.tensor(f['value'])
         self._spline_b_new_value = torch.tensor(f['value_b'])
         self._spline_2d_info = ast.literal_eval(str(f['info']))
@@ -100,7 +102,7 @@ class DistributionSkewed():
 
     with resource_stream(__name__, 'resources/partition_spline.npz') \
       as spline_file:
-      with np.load(spline_file, allow_pickle=False) as f:
+      with np.load(spline_file, allow_pickle=True) as f:
         self._spline_x_scale = torch.tensor(f['x_scale'])
         self._spline_values = torch.tensor(f['values'])
         self._spline_tangents = torch.tensor(f['tangents'])
@@ -110,9 +112,9 @@ class DistributionSkewed():
 
     
     #print('info', alpha, beta)
-    
+    #print(alpha)
 
-    new_x = ((x*alpha)/scale -self.x_min)*self.L
+    new_x = ((x/scale)*alpha -self.x_min)*self.L
     #new_x = torch.flatten(new_x)
     
     alpha = torch.as_tensor(alpha)
@@ -128,7 +130,7 @@ class DistributionSkewed():
                                       self._spline_2d_value.to(x))
 
     #print(r)
-    return r
+    return -torch.log(r)
     pass
 
 
@@ -151,7 +153,7 @@ class DistributionSkewed():
                                        self._spline_b_new_value.to(beta))
 
     #print(r)
-    return r
+    return torch.log(r)
     pass
 
   def log_base_partition_function(self, beta):
@@ -223,7 +225,9 @@ class DistributionSkewed():
     #print(l)
     loss = general.lossfun(x, beta, scale, approximate=True)
     #print(torch.log(scale))
-    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta) #self.log_base_partition_function(beta)
+    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta, scale) 
+    
+    #self.log_base_partition_function(beta)
     nll = loss + log_partition
     return nll
     
@@ -258,16 +262,16 @@ class DistributionSkewed():
     x = torch.as_tensor(x)
     
     alpha_ = torch.as_tensor(alpha)
-    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-2.499), torch.as_tensor(2.499))
+    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-20.0), torch.as_tensor(20.0))
     
     #print('alpha', alpha.shape)
     
     beta_ = torch.as_tensor(beta)
-    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(-9.0), torch.as_tensor(9.99))
+    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(-9.99), torch.as_tensor(9.99))
     
 
     scale_ = torch.as_tensor(scale)
-    scale  = torch.clamp(torch.as_tensor(scale_[0][0])*gt*gt + torch.as_tensor(scale_[0][1])*gt + torch.as_tensor(scale_[0][2]), torch.as_tensor(0.1), torch.as_tensor(4))
+    scale  = torch.clamp(torch.as_tensor(scale_[0][0])*gt*gt + torch.as_tensor(scale_[0][1])*gt + torch.as_tensor(scale_[0][2]), torch.as_tensor(0.01), torch.as_tensor(4))
     
 
     #print('alpha', alpha, beta)
@@ -283,10 +287,14 @@ class DistributionSkewed():
 
     #l = torch.as_tensor(0.65)#self.Z_integral(x, alpha, beta)
     #print(l)
-    loss = general.lossfun(x, beta, scale, approximate=True)
+    loss = general.lossfun(x, beta, scale, approximate=False)
     #print(torch.log(scale))
-    log_partition = torch.log(scale/2.0) + self.Z_max(beta) + self.Z_integral(x, alpha, beta, scale)
+    
+    log_partition =  torch.log(scale) + self.Z_max(beta) + self.Z_integral(x, alpha, beta, scale)
+    #print(torch.log(scale).mean())
+    
     nll = loss + log_partition
+    #print(nll.mean(), loss.mean(), log_partition.mean())
     return nll
 
   def draw_samples(self, beta, scale):
