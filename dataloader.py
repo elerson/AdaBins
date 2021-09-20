@@ -11,6 +11,18 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
 
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.std = std
+        self.mean = mean
+        
+    def __call__(self, tensor):
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+    
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
+        
+
 def _is_pil_image(img):
     return isinstance(img, Image.Image)
 
@@ -23,12 +35,20 @@ def preprocessing_transforms(mode):
     return transforms.Compose([
         ToTensor(mode=mode)
     ])
+    
+
+
+def preprocessing_transforms_train(mode):
+    return transforms.Compose([
+        ToTensor(mode=mode),
+        AddGaussianNoise(0., 1.)
+    ])
 
 
 class DepthDataLoader(object):
     def __init__(self, args, mode):
         if mode == 'train' or mode == 'train_validation':
-            self.training_samples = DataLoadPreprocess(args, mode, transform=preprocessing_transforms(mode))
+            self.training_samples = DataLoadPreprocess(args, mode, transform=preprocessing_transforms_train(mode))
             if args.distributed:
                 self.train_sampler = torch.utils.data.distributed.DistributedSampler(self.training_samples)
             else:
