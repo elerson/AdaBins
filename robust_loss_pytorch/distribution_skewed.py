@@ -97,7 +97,7 @@ class DistributionSkewed():
     self.Lb = (self.N_b)/(self.b_max-self.b_min)
     
 
-
+    print(self.b_min, self.N_b, self.Lb)
     #print(self._spline_2d_value)
 
     with resource_stream(__name__, 'resources/partition_spline.npz') \
@@ -262,16 +262,16 @@ class DistributionSkewed():
     x = torch.as_tensor(x)
     
     alpha_ = torch.as_tensor(alpha)
-    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt*gt + torch.as_tensor(alpha_[0][1])*gt + torch.as_tensor(alpha_[0][2]), torch.as_tensor(-10.0), torch.as_tensor(10.0))
+    alpha  = torch.clamp(torch.as_tensor(alpha_[0][0])*gt + torch.as_tensor(alpha_[0][1]), torch.as_tensor(-10.0), torch.as_tensor(10.0))
     
     #print('alpha', alpha.shape)
     
     beta_ = torch.as_tensor(beta)
-    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt*gt + torch.as_tensor(beta_[0][1])*gt + torch.as_tensor(beta_[0][2]), torch.as_tensor(-4.99), torch.as_tensor(4.99))
+    beta  = torch.clamp(torch.as_tensor(beta_[0][0])*gt + torch.as_tensor(beta_[0][1]), torch.as_tensor(-4.99), torch.as_tensor(4.99))
     
 
     scale_ = torch.as_tensor(scale)
-    scale  = torch.clamp(torch.as_tensor(scale_[0][0])*gt*gt + torch.as_tensor(scale_[0][1])*gt + torch.as_tensor(scale_[0][2]), torch.as_tensor(0.01), torch.as_tensor(4))
+    scale  = torch.clamp(torch.as_tensor(scale_[0][0])*gt + torch.as_tensor(scale_[0][1]), torch.as_tensor(0.01), torch.as_tensor(4))
     
 
     #print('alpha', alpha, beta)
@@ -287,7 +287,7 @@ class DistributionSkewed():
 
     #l = torch.as_tensor(0.65)#self.Z_integral(x, alpha, beta)
     #print(l)
-    loss = general.lossfun(x, beta, scale, approximate=False)
+    loss = general.lossfun(x, beta, scale, approximate=True)
     #print(torch.log(scale))
     
     log_partition =  torch.log(scale) + self.Z_max(beta) + self.Z_integral(x, alpha, beta, scale)

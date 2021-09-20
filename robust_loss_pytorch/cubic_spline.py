@@ -217,8 +217,8 @@ def interpolate1d_new(x, values):
 
   assert len(values.shape) == 2
 
-  x = torch.clamp(x, torch.as_tensor(1),
-                                 values.shape[1] - 3)                                 
+  x = torch.clamp(x, torch.as_tensor(1.0),
+                                 float(values.shape[1]) - 3.0)                                 
                                  
   x_lo = torch.floor(x).type(torch.int64)
  

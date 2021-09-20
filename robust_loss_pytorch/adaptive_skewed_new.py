@@ -170,7 +170,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_beta',
            torch.nn.Parameter(
-              torch.as_tensor([[0.0,0.0,1.0]]).to(
+              torch.as_tensor([[0.0,1.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       
@@ -197,7 +197,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_alpha',
           torch.nn.Parameter(
-              torch.as_tensor([[0, .0, 0.0]]).to(
+              torch.as_tensor([[0.0, 0.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.alpha = lambda: util.affine_sigmoid(
@@ -218,7 +218,7 @@ class AdaptiveLossFunction(nn.Module):
       self.register_parameter(
           'latent_scale',
           torch.nn.Parameter(
-              torch.as_tensor([[0, 0, 1.0]]).to(
+              torch.as_tensor([[0, 1.0]]).to(
                   dtype=self.float_dtype, device=self.device),
               requires_grad=True))
       #self.scale = lambda: util.affine_softplus(
@@ -513,12 +513,12 @@ class AdaptiveImageLossFunction(nn.Module):
     """Returns an image of betas."""
     assert not self.use_students_t
     #return self.adaptive_lossfun.alpha()
-    return torch.reshape(self.adaptive_lossfun.alpha(), (1, 3))
+    return torch.reshape(self.adaptive_lossfun.alpha(), (1, 2))
     
   def beta(self):
     """Returns an image of betas."""
     assert not self.use_students_t
-    return torch.reshape(self.adaptive_lossfun.beta(), (1, 3))
+    return torch.reshape(self.adaptive_lossfun.beta(), (1, 2))
 
   def df(self):
     """Returns an image of degrees of freedom, for the Student's T model."""
@@ -527,5 +527,5 @@ class AdaptiveImageLossFunction(nn.Module):
 
   def scale(self):
     """Returns an image of scales."""
-    return torch.reshape(self.adaptive_lossfun.scale(), (1, 3))
+    return torch.reshape(self.adaptive_lossfun.scale(), (1, 2))
 

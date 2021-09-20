@@ -145,7 +145,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
     criterion_ueff = SILogLoss()
     criterion_bins = BinsChamferLoss() if args.chamfer else None
     image_size = (1, args.input_height, args.input_width)
-    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_lo=1.0, scale_init=1.0)
+    adaptive_image_loss_func = AdaptiveImageLossFunctionSkewedNew(image_size, np.float32, 0, alpha_init=0, beta_init=1.00, scale_lo=0.5, scale_init=1.0)
     ################################################################################################
 
 
@@ -213,10 +213,10 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             
             depth2    = depth[mask]
             new_pred = new_pred[mask]
-            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, depth2/300.0)#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2)/300.0)#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
            
 
-            l_dense = l_dense.mean() + l_dense_1 
+            l_dense = l_dense.mean() #+ l_dense_1 
              
 
 
@@ -237,14 +237,14 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
 
                 wandb.log({"b0": adaptive_image_loss_func.beta()[0][0]}, step=step)
                 wandb.log({"b1": adaptive_image_loss_func.beta()[0][1]}, step=step)
-                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
+#                wandb.log({"b2": adaptive_image_loss_func.beta()[0][2]}, step=step)
 
                 wandb.log({"a0": adaptive_image_loss_func.alpha()[0][0]}, step=step)
                 wandb.log({"a1": adaptive_image_loss_func.alpha()[0][1]}, step=step)
-                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
-
-#                wandb.log({"ss0": adaptive_image_loss_func.scale()[0][0]}, step=step)
-#                wandb.log({"ss1": adaptive_image_loss_func.scale()[0][1]}, step=step)
+#                wandb.log({"a2": adaptive_image_loss_func.alpha()[0][2]}, step=step)
+#
+                wandb.log({"ss0": adaptive_image_loss_func.scale()[0][0]}, step=step)
+                wandb.log({"ss1": adaptive_image_loss_func.scale()[0][1]}, step=step)
 #                wandb.log({"ss2": adaptive_image_loss_func.scale()[0][2]}, step=step)
 
             step += 1
@@ -275,7 +275,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             
                 depth2    = depth[mask]
                 new_pred = new_pred[mask]
-                l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+                l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2)/300.0)#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
            
 
                 l_dense = l_dense.mean()
