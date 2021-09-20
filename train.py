@@ -213,7 +213,7 @@ def train(model, args, epochs=10, experiment_name="DeepLab", lr=0.0001, root="."
             
             depth2    = depth[mask]
             new_pred = new_pred[mask]
-            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, torch.sqrt(depth2))#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
+            l_dense = adaptive_image_loss_func.lossfun(new_pred - depth2, depth2/300.0)#criterion_ueff(pred, depth, mask=mask.to(torch.bool), interpolate=True)
            
 
             l_dense = l_dense.mean() + l_dense_1 
